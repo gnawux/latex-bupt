@@ -1,0 +1,157 @@
+%$Id: w03_spreading.tex  403 2007-02-03 14:09:19Z gnawux $
+%  vim: set ft=tex:
+\chapter{移动个人网络中的移动性模型}
+
+\section{引言}
+
+Mobile Personal Network is a self-organized network, and the nodes in it are diverse pervasive devices, i.e. they may have different architecture, functionality, capacity, and heterogeneous interconnections, which distinguishes it from a general mobile ad hoc network (MANET).
+
+\section{移动个人网络的移动性特征}
+
+In mobile personal networks, a user always have several diverse equipments around himself/herself, and the behavior of them likely has some common characteristics.
+
+\textbf{Characteristic \#1: The devices have diverse capabilities and are connected with heterogeneous networking technologies.} Unlike a common computer network, a node in personal networks may either be sophisticated as a video game console with powerful multi-core processors, gigabit Ethernet and WLAN, or simple as a temperature sensor networked via ZigBee. Moreover, an equipment in personal networks is featured by its functionality, e.g. video capturing or sensing capability, rather than a plain IP address.
+
+\textbf{Characteristic \#2: The nodes in a mobile personal network are close in distance with each other.} Devices in a mobile personal network are often in the range of a car, a room, etc., thus, it is not an typical ad hoc network in the aspect of coverage range, i.e. multi-hop does exist, but mostly because of the heterogeneity in networking scheme or the restriction of link layer protocol. Therefore, it is assumed that message from a device can reach any other nodes in a same link directly.
+
+\textbf{Characteristic \#3: From mobility aspects, the devices are grouped naturally.} While nodes may be grouped by organizing unit in general ad hoc networks, the pervasive devices in personal networks are deployed in/on physical entities, for instance, a GPS guider, a radar may be installed in a car, and a video game console, a temperature sensor may be deployed in a living room. Therefore, the devices are grouped naturally, and a mobile personal network is composed by several groups.
+
+\section{自组织网络中的移动性模型}
+
+\section{移动个人网络的分组移动模型}
+
+
+Nodes in a mobile personal network are moving in group, and nodes in each group may spread in several links. Moreover, the groups in mobile personal networks are hierarchical, for instance, a suit of wearable devices form a group, and they are also in a group of human body when they are worn. Most of previous research on group mobility of MANET adopted the Reference Point Group Mobility (RPGM) \cite{bib:pei1998,bib:hong1999} mobility model and its variants. In RPGM, each group has a conceptual center, the reference point, represents the group's motion. RPGM is an effective approach on research of MANET in which members move as a group, however, the group mobility of MANET does not consider the heterogeneity and the short range nature of mobile personal networks.
+
+A typical mobile personal network is illustrated as Fig.~\ref{fig:mob-mod}. It is a heterogeneous network which consists of several links, and the links are interconnected by some multi-mode nodes named as ``bridge nodes'', which behaves as a router between different links. Based on the analysis in \ref{sse:analysis}, one of the most significant features, which distinguish a mobile personal network from general ad hoc networks, is that packages can be transmitted to any other nodes in the same link within one hop. Thus, if there are $l$ links in a mobile personal network, a piece of informations from one node can be broadcasted to all the others by $l$ messages. Moreover, in mobile personal networks, only the motion leading to joining or leaving of nodes is taken into consideration because a node is able to communicate with any other nodes in the same link once it joins the mobile person network.
+
+\begin{figure}[htb]
+	\begin{center}
+		\includegraphics[width=.45\textwidth]{mob-mod}
+	\end{center}
+	\caption{Illustration of a Mobile Personal Network}
+	\label{fig:mob-mod}
+\end{figure}
+
+\subsection{Service Discovery Procedures Considering Group based Mobility of Nodes}
+\label{sec:grp}
+
+\subsection{Control Messages in Service Discovery Procedures}
+
+In proposed protocol, the control messages are sent to all the SNs with multicast, and five classes of control messages are defined:
+\begin{itemize}
+	\item Advertise. When a node wants to join in the system, or modify its attributes, it may announce itself via ``Advertise''.
+	\item Report. If a node has noticed some node disappeared, it
+		will report that to its friends with ``Report'' message.
+	\item Append. If a node has heard any messages incorrect or 
+		incomplete, it will send an ``Append'' message to 
+		override or append to them.
+	\item Discover. If an application wants to invoke a function, 
+		it may send a ``Discover'' message to find a proper
+		capability server.
+	\item Notify. If a node has found that a CS,
+		which had been discovered by an application but not been 
+		satisfied, was ready, it will send ``Notify'' message 
+		to the application.
+\end{itemize}
+And several special fields may be contained in the control messages:
+The ``\emph{urgency}'' field denotes whether the message is urgent, 
+and if it is not, it may be cached and merged with other messages
+in order to reduce the noise; and ``\emph{group}'' field implies
+that the message may be able to apply to a group if others have no 
+opposite message sent.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsection{Device Initiated Procedures}
+
+There are two types of configuration procedures, one is caused by the modifications on devices, and the other is originated by the applications.
+
+When the a device is turned on or normally shutdown, the procedure is considered as a ``single device modification''. As shown in Fig.~\ref{fig:singledev}, a device is announcing that it is turned on and with 2 CSes.
+
+\begin{figure}[htb]
+	\texttt{%
+Advertise CS JOIN\\
+DeviceID: 07707ddd-03d6-46b6-a858-f534e1\\
+Urgency: low\\
+TTL: 30\\
+Servers: 2\\
+ServerType: 33dd\\
+CAPA: 55\\
+ServerType: 49fb\\
+CAPA: 45
+	}
+	\caption{Single Device Modification}
+	\label{fig:singledev}
+\end{figure}
+
+When a node notices one or more devices are departing from it, which may imply a group is going away, it will send a ``group device modification'' message (Fig. \ref{fig:groupdev}) if no others reported that. In ``group device modification'' message, a hierarchy of groups may be listed, and a latter one must be a subset of a former one. Hence, if any other sends an opposite ``Append message'' against a group (Fig. \ref{fig:append}, the listeners may consider the devices modification is only occurring on its subsets. For instance, the messages in Fig. \ref{fig:groupdev} and \ref{fig:append} shows that \textit{WearableGroup} is a subgroup of \textit{HouseGroup} currently, but \textit{WearableGroup} is going away, while \textit{HouseGroup} stays here, i.e. \textit{WearableGroup} will no longer be a subgroup of it.
+
+\begin{figure}[htb]
+	\texttt{%
+Report CS LEAVE\\
+GroupID: HouseGroup\\
+GroupID: WearableGroup\\
+Urgency: low\\
+TTL: 30\\
+DeviceID: 07707ddd-03d6-46b6-a858-f534e1\\
+Servers: 2\\
+\ldots
+	}
+	\caption{Group Device Modification}
+	\label{fig:groupdev}
+\end{figure}
+
+\begin{figure}[htb]
+	\texttt{%
+Append OPPOSITE LEAVE\\
+GroupID: HouseGroup\\
+Urgency: low\\
+\ldots
+	}
+	\caption{Append Message}
+	\label{fig:append}
+\end{figure}
+
+If a node supports multi-mode communication, it will behave as a bridge node, which is responsible for forwarding messages from one link to another. If a ``group device modification'' message is not urgent, the bridge node will not forward it at once, on the contrary, it will wait ``Append'' messages for a while and merge them into the modification message. The bridge operation will introduce a delay
+\begin{equation}
+	T_b=\max(T_{append})+T_{random},
+	\label{eq:bridge}
+\end{equation}
+where $T_{append}$ is the longest delay of ``Append'' message, and $T_{random}$ is a random delay to avoid collision, even if no ``Append'' message is sent. However, it may prevent from forwarding unnecessary messages. And if the message is tagged as urgency, it will be forward without the $\max(T_{append})$ delay.
+
+\subsection{Application Initiated Procedures}
+
+If an application requires several CSes, it may send a ``Discover Request'' message (Fig. \ref{fig:discover-req}). Then an SN which records the CS satisfying the requirement will reply a ``Discover Response'' message (Fig. \ref{fig:discover-res}). An SN will keep silent if the contents in its record entries have been sent out by others, whereas it will sent an ``Append'' to the response if it has additional information. Moreover, if some CSes do not ready when the application performs a discovery request, the ``Discover Request'' will be refer to as a ``subscribe'' operation, thus, SNs will ``notify'' it whenever the CSes becomes ready. In addition, the notify messages can be sent to nodes with predetermined parameters, which may be used to recompose an application even if the initiate node is not available. 
+
+\begin{figure}[htb]
+	\texttt{%
+Discover Request\\
+ApplicationID: 76ae08ed-7f5d-400f-b931-49c\\
+Location: 07707ddd-03d6-46b6-a858-f534e1\\
+Urgency: low\\
+Servers: 2\\
+\ldots
+	}
+	\caption{Discover Request}
+	\label{fig:discover-req}
+\end{figure}
+
+\begin{figure}[htb]
+	\texttt{%
+Discover Response\\
+ApplicationID: 76ae08ed-7f5d-400f-b931-49c\\
+Location: 07707ddd-03d6-46b6-a858-f534e1\\
+Urgency: low\\
+Servers: 1\\
+\ldots
+	}
+	\caption{Discover Response}
+	\label{fig:discover-res}
+\end{figure}
+
+
+
+\section{性能比较与仿真}
+

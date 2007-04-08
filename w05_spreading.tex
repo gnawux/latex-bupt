@@ -4,4 +4,196 @@
 
 \section{引言}
 
-\section{}
+\section{对等网络中的分布式数据存储方式}
+
+\subsection{结构化方式存储}
+
+\subsection{非结构化方式存储}
+
+\section{移动个人网络的分布式数据存储}
+
+\subsection{System Model of Mobile Personal Networks}\label{sse:sysmodel}
+
+Suppose that there are $n$ nodes, $N_1, N_2,\cdots,N_n$, which spread in $l$ links, $L_1, L_2,\cdots,L_l$. While all the nodes wrap their functionalities as capability servers (CS) in order to facilitate the invocation by applications, only $s$ nodes among them are capable of storing directory informations, exchanging service discovery informations each other, and providing service discovery functionalities to applications, which are named as \emph{Senior Nodes (SN)}. And the nodes may change in mobility events, i.e. nodes joining or leaving, thus, the updated amount of nodes ($n'$) and SNs ($s'$) are
+\begin{eqnarray}
+	n' = & \!\!\!\!n+\Delta{}n, & \Delta{}n > -n\\
+	s' = & \!\!\!\!s+\Delta{}s, & \Delta{}s > -s\\
+	      &	    		& 0\le{}\frac{\Delta{}s}{\Delta{}n}\le{}1.\nonumber
+	\label{equ:nodesch}
+\end{eqnarray}
+
+Two kinds of data entries are stored in the directory, which consists of the SNs. One records the service informations, i.e. the CS descriptions, provided by devices, and the other records those about application sessions. A CS (Table. \ref{tab:server}, which provides certain functionality that could be invoked by applications, not only has an ID stand for itself (ServerID), but also has an ID for the type of service it providing. Moreover, a normalized capability value is presented, by which simplified the task of finding a CS with additional capability requirements. The TTL item is a watchdog timer for monitoring the availability of the entry. And a new ``GroupID'' field is introduced in order to facilitate the managements based on group mobility. 
+
+\begin{table}
+	\centering
+	\caption{Record of a Capability Server}
+	\label{tab:server}
+	\begin{tabular}{lll}
+		\hline
+		Data Item		& Definition						& Data Type	\\
+		\hline
+		ServiceTypeID	& Type of the service 				& string	\\
+		ServerID		& Identifier of the server 			& string	\\
+		DeviceID		& The device providing this server 	& string 	\\
+		GroupID 		& The groups in which the device is & string 	\\
+		NormalizedCapa 	& Normalized Capabilities of server & integer 	\\
+		UsedBy			& What applications are using it	& string	\\
+		TTL				& Time to live of this description	& integer	\\
+		Capability		& Capability description of Server	& string	\\
+		\hline
+	\end{tabular}
+\end{table}
+
+On the other hand, the introduction of application record (Table \ref{tab:app}) helps the service continuity. For an application, not only the application ID and capability servers in use are recorded, but also the required and recommended services and normalized capability value are recorded. Thus, the application will be interrupted if no server can provide required service with acceptable capability; or may be notified if new servers can provide some recommended services, or even be re-composed if previous services become not available and alternatives are present. Additionally, a location entry is used for calling back.
+%在移动性事件发生的时候，可以及时利用下有的资源，重新进行 service composition，从而保证了业务的连续性
+
+\begin{table}
+	\centering
+	\caption{Record of an Application}
+	\label{tab:app}
+	\begin{tabular}{lll}
+		\hline
+		Data Item		& Definition							& Data Type \\
+		\hline
+		AppID			& Identifier of the application			& string \\
+		Location		& Where the application was initialized	& string	\\
+		Required		& Services required by the application	& string	\\
+		Recommended		& Services recommended by it			& string	\\
+		Using			& What servers were used by it			& string	\\
+		\hline
+	\end{tabular}
+\end{table}
+
+\subsection{Design of the Decentralized Directory in Mobile Personal Networks}\label{sec:replica}
+
+%分开说两类数据，关于设备的要把组放进去，关于应用的不放，重看一下上面的参考文献, system-wise 这个词不准确
+In proposed protocol, only application entries are maintained system-wise so that the applications can be recomposed even if serving devices leave the system, while the CS entries of devices are maintained in the scope of group, therefore, the minimization of system-wise status \cite{bib:prehofer05} cuts down the cost of reorganizing the directory. All the SNs in mobile personal networks have some memory for maintaining a database of the directory entries for service discovery.
+
+\subsection{Organization of the Decentralized Directory}
+
+As a centralized directory such as that in Service Location Protocol (SLP) or Jini is hard to survive in mobility event of mobile personal networks, decentralized directory and data replication among nodes are adopted in order to improve the robustness. Discrete Hash Table (DHT) based methods, such as chord \cite{bib:chord_sigcom} and pastry \cite{bib:pastry}, enable a distributed storage infrastructure for Internet, however, each node in a DHT ring should keep routing information of $O(\log{}N)$ peers and an additional node's joining costs a lookup ($O(\log{}N)$ messages) and updating routing informations in $O(\log{}N)$ nodes \cite{bib:chord_sigcom}. As the nodes often joining a mobile personal network as groups, DHT based infrastructure may not handle it effectively. 
+%尽量减少全局状态，以组为单位是个折衷，全局信息全局存储，小组信息小组存储
+
+On the other hand, Huang and Chen \cite{bib:huang06} proposed a data replication method considering group mobility in MANET, in which a hierarchical structure is adopted. However, as the group mobility model of mobile personal networks is much different from RPGM in general MANET, the decentralized directory in mobile personal networks may be based on the short distance characteristics. Considering all the devices in mobile personal networks have restricted performance and robustness, i.e. SN may fail at anytime or not afford any more informations, entries are distributed to nodes in uniform distribution with redundancy: Records are sent to every SN with multicast, while each entry in certain SN has its own priority and the SN only keeps the high priority entries. The priority ($P_d(r)$) of a entry in an SN is defined by the distance between the hashing ($h(\cdot)$) of the entry ID ($r$) and the device ID ($d$) of the current SN:
+\begin{equation}
+	P_{d}(r)=|h(r)-h(d)|
+	\label{eq:priority}
+\end{equation}
+If the hashing of keys is in uniform distribution, as there are $n$ nodes, in which $s$ are SNs and every SN stored $\gamma$ entries of nodes, the redundancy $\rho$ of entries is approximately
+\begin{equation}
+	\rho=\frac{\gamma{}n}{s}.
+	\label{eq:redundancy}
+\end{equation}
+In the proposed protocol, SHA-1~\cite{bib:sha1} algorithm is selected for randomization.
+
+\subsection{Replicating Directory Records among Nodes}
+
+The directory entries in SNs are updated by service discovery events and directory updating messages. Each SN sends updating messages periodically, and the time a nodes sending an update message, $T_u$ is based on the last time it received an updating message, $T_{u0}$
+\begin{equation}
+	T_u = T_{u0} + T_r\cdot{}(R-R_D),
+	\label{eqn:tupdate}
+\end{equation}
+where $T_r$ is a random time difference in uniform distribution, $R$ is the total number of the entries in the local memory of the SN, and $R_D$ stands for the number of entries in its local memory which are not updated in a short period. Thus, an SN taking more different entries has higher probability to sent an updating messages.
+%来个状态转移图吧，呵呵
+
+Once additional SNs have joined a mobile personal network, one of them will be random selected and multicast a ``replication solicitation'' message to all the SNs if they have not received a ``directory updating'' in a threshold, and then one of the preexisted SNs will multicast all of the entries in its directory with an updating message. Having received the entries, all the newcomer SNs will initialize their directory with them. Thus, the additional nodes will participate the normal directory updating procedures. The pseudocode of replication of the directory entries are shown in Fig. \ref{fig:replica}.
+
+\begin{figure}[htb]
+	\texttt{%
+\mbox{~}on\_timeout()\\
+\mbox{~}\enskip sent\_update();\\
+\mbox{~}\\
+\mbox{~}on\_receive\_solicitation()\\
+\mbox{~}\enskip t = timer.get\_time();\\
+\mbox{~}\enskip timer.set\_time( t/entry\_number );\\
+\mbox{~}\\
+\mbox{~}on\_receive\_update()\\
+\mbox{~}\enskip time\_stamp = systemtime();\\
+\mbox{~}\enskip update\_entries(received\_data,time\_stamp);\\
+\mbox{~}\enskip entry\_diff\_count=0;\\
+\mbox{~}\enskip for i=1 to record\_number\\
+\mbox{~}\enskip\enskip  if entry[i].time\_stamp\\
+\mbox{~}\enskip\enskip\enskip\enskip\enskip <(time\_stamp-threshold)\\
+\mbox{~}\enskip\enskip\enskip   entry\_diff\_count++;\\
+\mbox{~}\enskip timer.set\_time(rand()*\\
+\mbox{~}\enskip\enskip\enskip\enskip\enskip (entry\_number-entry\_diff\_number));%  
+	}
+	\caption{Pseudocode of Data Replication}
+	\label{fig:replica}
+\end{figure}
+
+Table \ref{tab:exam} illustrates the process of nodes joining: assuming there are 15 SNs, each of them storing 8 entries, and there are 30 entries totally, therefor, every records have 4 replicas approximately. When 4 SNs are joining simultaneously, they initialize themselves with updating messages. In Table \ref{tab:exam}, each sub-table illustrates an updating round; the first line shows the entries in updating message, and the number in the parentheses stands for the SN which sent the updating message, while the rest 4 lines shows the entries in the 4 SNs after the updating round; moreover, the entries in each lines are sorted by their priority in corresponding SNs, and updated entries in each round are highlight with underlines.
+
+As shown in Table \ref{tab:exam}, in the first updating round, all the joining SNs are initiated by the entries from $s_6$. Then the updating message from $s_5$ updates all the entries in the first joining nodes and some of the entries in the second, while the entries in the rest nodes do not change at all. Additionally, the entries in the first joining SN have achieved a stable state. Finally, in the third updating round, all the joining nodes enter the stable state and the joining procedure have completed.
+
+\begin{table}[htb]
+	\centering
+	\caption{Example: 4 SNs Joining a 15-SN network}
+	\label{tab:exam}
+	\begin{tabular}{p{10ex}|rrrrrrrr}
+		\hline
+		Updates(6) & 	12 &   9 &   1 &  21 &  19 &  17 &  24 &  6 \\
+		\hline
+		1			&	6  & 24  & 17  & 21  & 19  &  9  &  1  & 12 \\
+		2			&	6  & 21  &  9  & 12  &  1  & 19  & 17  & 24 \\
+		3			&   21 &   9 &  12 &   1 &   6 &  19 &  17 &  24 \\
+		4			&	9  & 12  &  1  & 21  & 19  & 17  &  6  & 24 \\
+		\hline
+	\end{tabular}
+	\vspace{1em}
+
+	\begin{tabular}{p{10ex}|rrrrrrrr}
+		\hline
+		Updates(5) & 	13 &  27 &  15 &  14 &   7 &   5 &  11 &  16 \\
+		\hline
+		1			&   \underline{13} &  \underline{27} &  \underline{15} &  \underline{14} &   \underline{7} &   \underline{5} &  \underline{11} &  \underline{16} \\
+		2			&    6 &  \underline{16} &  \underline{11} &   \underline{5} &  21 &   \underline{7} &   9 &  12 \\
+		3			&   21 &   9 &  12 &   1 &   6 &  19 &  17 &  24 \\
+		4			&    9 &  12 &   1 &  21 &  19 &  17 &   6 &  24 \\
+		\hline
+	\end{tabular}
+	\vspace{1em}
+	
+	\begin{tabular}{p{10ex}|rrrrrrrr}
+		\hline
+		Updates(13) &   10 &  30 &   3 &  22 &  28 &   8 &   6 &   2 \\
+		\hline
+		1			&   13 &  27 &  15 &  14 &   7 &   5 &  11 &  16 \\
+		2			&   \underline{28} &  \underline{22} &   \underline{3} &  \underline{30} &  \underline{10} &   \underline{2} &   \underline{8} &   6 \\
+		3			&   21 &   9 &  12 &   1 &   6 &   \underline{8} &  \underline{10} &  19 \\
+		4			&    9 &  12 &   1 &  21 &  19 &  17 &   6 &   \underline{8} \\
+		\hline
+	\end{tabular}
+\end{table}
+
+In DHT distributed storage methods, e.g. chord, they do not consider simultaneously joining of large amount of nodes\cite{bib:chord_sigcom}. In the proposed protocol, since the updating messages are sent with multicast, the initialization procedure of joining SNs can be done parallelly, which enables it in the condition that joining nodes are even more than preexisting ones, and a simulation shown in Fig. \ref{fig:spread} illustrates that. 
+
+\begin{figure}[htb]
+	\begin{center}
+		\includegraphics[width=.45\textwidth]{images/spread}
+	\end{center}
+	\caption{Effects of Joining Nodes and Updating Period}
+	\label{fig:spread}
+\end{figure}
+
+Assuming there are 15 preexisting SNs and the joining SNs may be $1, 2, 4, 8,\cdots,128$, and each preexisting SN have 8 entries from 30 entries. As the number joining SNs increased exponentially, the required number of updating messages increases much slower. Because the SNs which have not achieved stable status may also sent updating messages in low probability, the required updating will increase as the joining SNs increase. On the other hand, the range of the updating timer may affect the probability of sending a updating messages from a joining SN. Fig \ref{fig:spread} shows that a higher updating timer can help initialization of joining nodes becoming stable because an old record entry can be tagged as out-of-date earlier.
+
+%给下面那些过程加入MSC图
+
+
+\section{性能分析与仿真}
+
+\subsection{数据的存活能力}
+
+节点退出的性能，消耗多少存储量，可以保障多高冗余度的概率分析
+
+\subsection{查找数据的性能}
+
+确知的知道多少步骤可以找到所需数据
+
+\subsection{数据再分布的性能}
+
+节点加入的性能，加入的数据需要消耗多少信息量才能稳定
+
+\section{小结}
+
