@@ -4,17 +4,17 @@
 
 \section{引言}
 
-Mobile Personal Network is a self-organized network, and the nodes in it are diverse pervasive devices, i.e. they may have different architecture, functionality, capacity, and heterogeneous interconnections, which distinguishes it from a general mobile ad hoc network (MANET).
+本论文所讨论的分布式终端系统，由个人周边的只能设备自组织构成，由于其成员是泛在计算环境下的各种个人周边的智能设备，逻辑中心是其服务的用户，因此，它是构建在一个特殊的自组织网络之上的。由于这个自组织网络的核心——用户具有很强的移动性，随着用户的移动，网络的形态会发生剧烈的变化，而同时，由于这个网络的构建目的十分明确——服务用户，因此，其行为特征也具有很强的特殊性，本文将这种特殊的自组织网络称为~``移动个人网络~(MPN, Mobile Personal Networks)''~以与一般意义的移动自组织网络~(MANET, Mobile Ad hoc Networks)~相区别。
 
 \section{移动个人网络的移动性特征}
 
-In mobile personal networks, a user always have several diverse equipments around himself/herself, and the behavior of them likely has some common characteristics.
+不同于通常意义上的~MANET，在移动个人网络中的节点是一些各不相同的设备而不是相同或类似的通用计算机，并且这些节点都围绕在一个用户周围，因此，可以如下概括移动个人网络的基本行为特征：
 
-\textbf{Characteristic \#1: The devices have diverse capabilities and are connected with heterogeneous networking technologies.} Unlike a common computer network, a node in personal networks may either be sophisticated as a video game console with powerful multi-core processors, gigabit Ethernet and WLAN, or simple as a temperature sensor networked via ZigBee. Moreover, an equipment in personal networks is featured by its functionality, e.g. video capturing or sensing capability, rather than a plain IP address.
-
-\textbf{Characteristic \#2: The nodes in a mobile personal network are close in distance with each other.} Devices in a mobile personal network are often in the range of a car, a room, etc., thus, it is not an typical ad hoc network in the aspect of coverage range, i.e. multi-hop does exist, but mostly because of the heterogeneity in networking scheme or the restriction of link layer protocol. Therefore, it is assumed that message from a device can reach any other nodes in a same link directly.
-
-\textbf{Characteristic \#3: From mobility aspects, the devices are grouped naturally.} While nodes may be grouped by organizing unit in general ad hoc networks, the pervasive devices in personal networks are deployed in/on physical entities, for instance, a GPS guider, a radar may be installed in a car, and a video game console, a temperature sensor may be deployed in a living room. Therefore, the devices are grouped naturally, and a mobile personal network is composed by several groups.
+\begin{enumerate}
+	\item 设备能力各有不同，且通过异构网络互联。由于移动个人网络之中的节点都是个人周边的设备，这些设备中可能有计算和连接能力非常强设备，比如电视游戏机，它们可能装备了多核~CPU、千兆以太网以及~WLAN，不过也有的设备非常简单，一些无线传感器可能没什么富余的计算能力，网络连接能力也可能仅仅是~ZigBee~这样的低功耗连接。虽然这些设备在能力上相差悬殊，但在应用中，它们各有用武之地。
+	\item 设备之间的距离足够近。在移动个人网络之中，所有可用设备都围绕在用户周围，比如居室、办公室、车内等，对于这样的环境，所有设备间的距离都是足够接近的，影响互相之间的可达性的最主要因素不是距离带来的信号衰落，而是连接上的异构性或是通信制式的容纳能力带来的限制。因此，论文中假设同一链路间的各个设备是互相可达的，跨链路转发则依赖于多模设备。
+	\item 设备之间的相互移动行为具有组特征。在~MANET~的组移动性研究中，组往往是由于人员组织等造成的，而个人周边的泛在设备的组移动特征更为显著，这些设备通常都是与生俱来地附属于某一实体的，比如车内的~GPS~导航仪、车载音响、车载电视等，又如居室内的电视、游戏机、温度传感器等。所以，这些设备就是按组移动的，而某一时刻下，个人移动网络总是由一个或若干个组组成的。
+\end{enumerate}
 
 \section{自组织网络中的移动性模型}
 
@@ -151,7 +151,10 @@ Servers: 1\\
 	\label{fig:discover-res}
 \end{figure}
 
+\section{性能分析与仿真}
 
+\subsection{服务发现性能}
 
-\section{性能比较与仿真}
+\subsection{服务调用性能}
+
 
