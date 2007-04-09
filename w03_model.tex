@@ -6,7 +6,11 @@
 
 本论文所讨论的分布式终端系统，由个人周边的只能设备自组织构成，由于其成员是泛在计算环境下的各种个人周边的智能设备，逻辑中心是其服务的用户，因此，它是构建在一个特殊的自组织网络之上的。由于这个自组织网络的核心——用户具有很强的移动性，随着用户的移动，网络的形态会发生剧烈的变化，而同时，由于这个网络的构建目的十分明确——服务用户，因此，其行为特征也具有很强的特殊性，本文将这种特殊的自组织网络称为~``移动个人网络~(MPN, Mobile Personal Networks)''~以与一般意义的移动自组织网络~(MANET, Mobile Ad hoc Networks)~相区别。
 
-\section{移动个人网络的移动性特征}
+\section{自组织网络中的移动性模型}
+
+Most of previous research on group mobility of MANET adopted the Reference Point Group Mobility (RPGM) \cite{bib:pei1998,bib:hong1999} mobility model and its variants. In RPGM, each group has a conceptual center, the reference point, represents the group's motion. RPGM is an effective approach on research of MANET in which members move as a group, however, the group mobility of MANET does not consider the heterogeneity and the short range nature of mobile personal networks.
+
+\section{移动个人网络的移动性特征}\label{sse:03:mpnchar}
 
 不同于通常意义上的~MANET，在移动个人网络中的节点是一些各不相同的设备而不是相同或类似的通用计算机，并且这些节点都围绕在一个用户周围，因此，可以如下概括移动个人网络的基本行为特征：
 
@@ -16,59 +20,54 @@
 	\item 设备之间的相互移动行为具有组特征。在~MANET~的组移动性研究中，组往往是由于人员组织等造成的，而个人周边的泛在设备的组移动特征更为显著，这些设备通常都是与生俱来地附属于某一实体的，比如车内的~GPS~导航仪、车载音响、车载电视等，又如居室内的电视、游戏机、温度传感器等。所以，这些设备就是按组移动的，而某一时刻下，个人移动网络总是由一个或若干个组组成的。
 \end{enumerate}
 
-\section{自组织网络中的移动性模型}
-
 \section{移动个人网络的分组移动模型}
 
+与一般~MANET~不同，移动个人网络的节点组与连接意义上的链路相互交叉，同一个组的节点有可能会分布在多个链路上，通过承担转发功能的桥接节点互通，而同一链路上的节点也可能属于不同的组，只是随着组的移动，在特定时刻相互可达。基于移动性的节点组同时还具有层次性，如，附着于一件外套上的可穿戴设备本身是一个组，当它被用户穿着起来的时候，就与用户身上的其它便携设备一起，隶属于一个更大的身体范围的设备组了。
 
-Nodes in a mobile personal network are moving in group, and nodes in each group may spread in several links. Moreover, the groups in mobile personal networks are hierarchical, for instance, a suit of wearable devices form a group, and they are also in a group of human body when they are worn. Most of previous research on group mobility of MANET adopted the Reference Point Group Mobility (RPGM) \cite{bib:pei1998,bib:hong1999} mobility model and its variants. In RPGM, each group has a conceptual center, the reference point, represents the group's motion. RPGM is an effective approach on research of MANET in which members move as a group, however, the group mobility of MANET does not consider the heterogeneity and the short range nature of mobile personal networks.
-
-A typical mobile personal network is illustrated as Fig.~\ref{fig:mob-mod}. It is a heterogeneous network which consists of several links, and the links are interconnected by some multi-mode nodes named as ``bridge nodes'', which behaves as a router between different links. Based on the analysis in \ref{sse:analysis}, one of the most significant features, which distinguish a mobile personal network from general ad hoc networks, is that packages can be transmitted to any other nodes in the same link within one hop. Thus, if there are $l$ links in a mobile personal network, a piece of informations from one node can be broadcasted to all the others by $l$ messages. Moreover, in mobile personal networks, only the motion leading to joining or leaving of nodes is taken into consideration because a node is able to communicate with any other nodes in the same link once it joins the mobile person network.
+图~\ref{fig:mob-mod}~是一个典型的移动个人网络的示意图，这是一个由多个互通的链路构成的异构网络，多模式的桥接节点将不同链路联系在一起。根据~\S~\ref{sse:03:mpnchar}~的分析，在同一链路中，所有设备都可以在一跳之内两两互通。这样，如果在一个移动个人网络之中有~$l$~个链路的话，每个包通过~$l$~条消息就可以达到每个节点。此外，因为个人域的空间范围被限制在一定距离之内，因此，移动性事件对于移动个人网络的影响只是节点的加入与分离和由此影响到的消息路由方式，而并不会因为距离的变化而影响到网络的拓扑结构。
 
 \begin{figure}[htb]
 	\begin{center}
-		\includegraphics[width=.45\textwidth]{mob-mod}
+		\includegraphics[width=.7\textwidth]{mob-mod}
 	\end{center}
-	\caption{Illustration of a Mobile Personal Network}
+	\caption{移动个人网络图示}
 	\label{fig:mob-mod}
 \end{figure}
 
-\subsection{Service Discovery Procedures Considering Group based Mobility of Nodes}
-\label{sec:grp}
+\section{基于移动性分组的服务发现} \label{sec:grp}
 
-\subsection{Control Messages in Service Discovery Procedures}
-
-In proposed protocol, the control messages are sent to all the SNs with multicast, and five classes of control messages are defined:
+作为一个面向应用的分布式系统，服务发现机制对于分布式移动终端系统无疑是至关重要的，论文中，为分布式移动终端系统的特定底层承载移动个人网络定制了一个基于移动性分组的服务发现机制。这套机制之中，所有的控制消息都会以组播的形式发送给所有的高级节点，这对于覆盖范围较小的移动个人网络并不会带来太多的开销，为了应对所有可能出现的移动性事件和服务发现需求，我们定义了五类控制消息：
 \begin{itemize}
-	\item Advertise. When a node wants to join in the system, or modify its attributes, it may announce itself via ``Advertise''.
-	\item Report. If a node has noticed some node disappeared, it
-		will report that to its friends with ``Report'' message.
-	\item Append. If a node has heard any messages incorrect or 
-		incomplete, it will send an ``Append'' message to 
-		override or append to them.
-	\item Discover. If an application wants to invoke a function, 
-		it may send a ``Discover'' message to find a proper
-		capability server.
-	\item Notify. If a node has found that a CS,
-		which had been discovered by an application but not been 
-		satisfied, was ready, it will send ``Notify'' message 
-		to the application.
+	\item Advertise. 当节点加入系统之中或是自己的能力属性发生变更的时候，它会通过~``Advertise''~消息来通告给系统内的其它设备。
+	\item Report. 当节点发现邻居节点从系统之中小时，它会使用~``Report''~消息来通告节点失效事件。
+	\item Append. 当节点发现其它节点报告的消息的内容不确切的时候，会通过~``Append''~消息来修正其消息。
+	\item Discover. 如果应用对某些功能有需求的时候，会通过~``Discover''~消息来进行资源发现，同时，``Discover''~消息还具有订阅~(Subscribe)~的语义，订阅所需的能力服务器的变更状况。
+	\item Notify. 如果节点发现某个能力服务器被某个应用订阅了，其状态恰好发生了改变，它会通过~``Notify''~消息通告应用。
 \end{itemize}
-And several special fields may be contained in the control messages:
-The ``\emph{urgency}'' field denotes whether the message is urgent, 
-and if it is not, it may be cached and merged with other messages
-in order to reduce the noise; and ``\emph{group}'' field implies
-that the message may be able to apply to a group if others have no 
-opposite message sent.
+通过这些消息，我们设计了一组基于移动性分组的服务发现机制，这套机制包括两大类过程：设备变更引发的过程和应用行为引发的服务发现过程。
+%And several special fields may be contained in the control messages: The ``\emph{urgency}'' field denotes whether the message is urgent, and if it is not, it may be cached and merged with other messages in order to reduce the noise; and ``\emph{group}'' field implies that the message may be able to apply to a group if others have no opposite message sent.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{设备发起的服务发现过程}
 
+当某一设备启动或是正常关闭的时候，设备的变更仅限于发生事件的设备，这一过程被称为~``单设备变更''，仅仅由设备自身向系统中的其它设备发布它的能力变化，不涉及互动。
+%When the a device is turned on or normally shutdown, the procedure is considered as a ``single device modification''. As shown in Fig.~\ref{fig:singledev}, a device is announcing that it is turned on and with 2 CSes.
 
-\subsection{Device Initiated Procedures}
-
-There are two types of configuration procedures, one is caused by the modifications on devices, and the other is originated by the applications.
-
-When the a device is turned on or normally shutdown, the procedure is considered as a ``single device modification''. As shown in Fig.~\ref{fig:singledev}, a device is announcing that it is turned on and with 2 CSes.
+\begin{figure}[htb]
+	\begin{center}
+		\includegraphics[width=.6\textwidth]{msc-sdm}
+%		\begin{msc}{单设备变更}
+%			\declinst{orig}{节点~A}{发起者}
+%			\declinst{inter}{节点~B}{桥接节点}
+%			\declinst{dest}{节点~C}{其它节点}
+%			\mess{设备变更}{orig}{inter}
+%			\nextlevel
+%			\mess{设备变更}{inter}{dest}
+%			\nextlevel
+%		\end{msc}
+	\end{center}
+	\caption{单设备变更的~MSC~图}
+	\label{fig:mscsingledev}
+\end{figure}
 
 \begin{figure}[htb]
 	\texttt{%
