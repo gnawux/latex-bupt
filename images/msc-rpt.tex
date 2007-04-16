@@ -1,0 +1,23 @@
+\documentclass{article}
+\usepackage{msc}
+\usepackage{CJK}
+\pagestyle{empty}
+\begin{document}
+\begin{CJK}{GBK}{song}
+		\begin{msc}{报告设备离开}
+			\declinst{orig}{节点~A}{发起者}
+			\declinst{append}{节点~B}{补充者}
+			\declinst{inter}{节点~C}{桥接节点}
+			\declinst{dest}{节点~D}{其它节点}
+			\nextlevel
+			\mess{设备离开}{orig}{inter}
+			\mscmark[tr]{$T=T_0$}{inter}
+			\nextlevel
+			\mess{补充消息}{append}{inter}
+			\nextlevel
+			\mess{设备离开*}{inter}{dest}
+			\mscmark[bl]{$T=T_0+T_b$}{inter}
+			\nextlevel
+		\end{msc}
+\end{CJK}
+\end{document}
