@@ -35,7 +35,8 @@
 % Packages Inclusion
 %
 \RequirePackage[dvipdfm]{graphicx}
-\RequirePackage{subfigure}
+%\RequirePackage{caption}
+\RequirePackage{subfig}
 \RequirePackage{indentfirst}
 \RequirePackage[a4paper,includeheadfoot,left=2.75cm,right=2.75cm,top=2.7cm,bottom=4.0cm]{geometry}
 \RequirePackage{CJK}
@@ -72,8 +73,6 @@
 % 支持引用缩写的宏包
 %\RequirePackage[square,super,sort&compress]{natbib}
 %\RequirePackage{hypernat}
-%浮动图形和表格标题样式
-\RequirePackage{caption2}
 % 定制表格和图形的多行标题行距
 \RequirePackage{setspace}
 % 打印当前页面格式的宏包
@@ -459,7 +458,7 @@ The contents\ldots%
 		\BUPT@authorization
 
 	}
-	\clearpage
+	\cleardoublepage
     \defaultfont%
 }
 
@@ -479,7 +478,7 @@ The contents\ldots%
 		\par
 		\vspace{14pt}
 		\hei\sihao\BUPT@keywordszhname: \song\BUPT@keywordszh
-		\clearpage
+		\cleardoublepage
 		\defaultfont
 	}
 \newenvironment{AbstractEn}{%
@@ -497,7 +496,7 @@ The contents\ldots%
 	\par
 	\vspace{14pt}
 	\hei\sihao\BUPT@keywordsenname: \song\BUPT@keywordsen
-	\clearpage
+	\cleardoublepage
 	\defaultfont
 }
 
@@ -604,11 +603,6 @@ The contents\ldots%
 % 修改引用的格式，
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%第一行在引用处数字两边加方框
-%第二行去除参考文献里数字两边的方框
-%\def\@cite#1{\mbox{$\m@th^{\hbox{\@ove@rcfont[#1]}}$}}
-%\renewcommand\@biblabel[1]{#1}
-
 % 增加 \ucite 命令使显示的引用为上标形式
 \newcommand{\ucite}[1]{$^{\mbox{\scriptsize \cite{#1}}}$}
 \newcommand{\BIBand}{and}
@@ -616,15 +610,11 @@ The contents\ldots%
 %\renewcommand\NAT@open{\textsuperscript{[}}
 %\renewcommand\NAT@close{\textsuperscript{]}}
 
-%\def\hlinewd#1{%
-%  \noalign{\ifnum0=`}\fi\hrule \@height #1 \futurelet
-%   \reserved@a\@xhline}
-
 %=======================================================================
 % The captions
 \renewcommand{\captionfont}{\wuhao\kai\rmfamily}
 \renewcommand{\captionlabelfont}{\wuhao\kai\rmfamily}
-\renewcommand{\captionlabeldelim}{\hspace{1em}}
+%\renewcommand{\captionlabeldelim}{\hspace{1em}}
 \renewcommand{\thefigure}{\thechapter--\@arabic\c@figure}
 \renewcommand{\thetable}{\thechapter--\@arabic\c@table}
 \renewcommand{\theequation}{\thechapter--\@arabic\c@equation}
