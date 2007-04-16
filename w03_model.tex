@@ -49,27 +49,22 @@ Most of previous research on group mobility of MANET adopted the Reference Point
 
 \subsection{设备发起的服务发现过程}
 
-当某一设备启动或是正常关闭的时候，设备的变更仅限于发生事件的设备，这一过程被称为~``单设备变更''，仅仅由设备自身向系统中的其它设备发布它的能力变化，不涉及互动。
-%When the a device is turned on or normally shutdown, the procedure is considered as a ``single device modification''. As shown in Fig.~\ref{fig:singledev}, a device is announcing that it is turned on and with 2 CSes.
+当某一设备启动或是正常关闭的时候，设备的变更仅限于发生事件的设备，这一过程被称为~``单设备变更''，仅仅由设备自身向系统中的其它设备发布它的能力变化，不涉及互动，图~\ref{fig:mscsingledev}~是这一过程的~MSC~图。
 
-\begin{figure}[htb]
+\begin{figure}[tb]
 	\begin{center}
 		\includegraphics[width=.6\textwidth]{msc-sdm}
-%		\begin{msc}{单设备变更}
-%			\declinst{orig}{节点~A}{发起者}
-%			\declinst{inter}{节点~B}{桥接节点}
-%			\declinst{dest}{节点~C}{其它节点}
-%			\mess{设备变更}{orig}{inter}
-%			\nextlevel
-%			\mess{设备变更}{inter}{dest}
-%			\nextlevel
-%		\end{msc}
 	\end{center}
 	\caption{单设备变更的~MSC~图}
 	\label{fig:mscsingledev}
 \end{figure}
 
-\begin{figure}[htb]
+图~\ref{fig:singledev}~是设备开启时发送的单设备变更消息示例，消息以控制消息类型~(Advertise)~开头，并说明消息是声明新加入的能力服务器，并在消息之中描述了两个新加入的能力服务器的类型和能力值。
+
+\begin{figure}[tb]
+	\begin{center}
+	\framebox{%
+	\begin{minipage}[t]{.8\textwidth}%
 	\texttt{%
 Advertise CS JOIN\\
 DeviceID: 07707ddd-03d6-46b6-a858-f534e1\\
@@ -80,75 +75,108 @@ ServerType: 33dd\\
 CAPA: 55\\
 ServerType: 49fb\\
 CAPA: 45
+	}%
+	\end{minipage}%
 	}
-	\caption{Single Device Modification}
+	\end{center}
+	\caption{单设备变更消息示例}
 	\label{fig:singledev}
 \end{figure}
 
-When a node notices one or more devices are departing from it, which may imply a group is going away, it will send a ``group device modification'' message (Fig. \ref{fig:groupdev}) if no others reported that. In ``group device modification'' message, a hierarchy of groups may be listed, and a latter one must be a subset of a former one. Hence, if any other sends an opposite ``Append message'' against a group (Fig. \ref{fig:append}, the listeners may consider the devices modification is only occurring on its subsets. For instance, the messages in Fig. \ref{fig:groupdev} and \ref{fig:append} shows that \textit{WearableGroup} is a subgroup of \textit{HouseGroup} currently, but \textit{WearableGroup} is going away, while \textit{HouseGroup} stays here, i.e. \textit{WearableGroup} will no longer be a subgroup of it.
+与上述过程不同，当一个节点注意到它与相邻节点的连接在没有得到任何通告的情况下中断的时候，它无法判断该节点是因为自身出现故障而失效还是该节点与其所在的组一起离开了自己的通信范围，而如果是后者，因为移动性分组具有层次性，统一节点可能会依次隶属与从小到大的若干个组，是哪个组离开同样不能确定。因此，报告离开事件的节点会假设最大组已经离开，而发送出~``Report''~消息，而收到消息的其它节点如果发现消息中所述的组实际并没有离开则会发出~``Append''~消息，来对这个消息进行补充。图~\ref{fig:mscgroupdepart}~展示了节点离开报告的典型过程，图中特别地标示了连接不同链路的桥接节点的行为，该节点对于收到的~``Report''~消息并不立刻转发到其它介质中去，而是等待一段时间，在这期间，如果有节点发出~``Append''~消息，桥接节点在转发的时候会将上述消息汇聚在一起，形成一个更加简短、准确的~``Report''~消息转发出来。这一熔合转发过程会引入一个~``桥接时延''
+\begin{equation}
+	T_b=\max(T_{append})+T_{random},
+	\label{eq:bridge}
+\end{equation}
+其中~$T_{append}$~是~``Append''~消息可能导致的最长时延，而~$T_{random}$~是一个用于避免碰撞的随机时延，由于是否会有~``Append''~消息不可预知，即使没有~``Append''~消息，这个时延也不可避免，不过，这个时延的引入可以防止不必要的消息转发。并且，如果消息被标记为~``Urgency~(紧急的)''，该消息会的转发时延中将没有~$T_{append}$~这一部分。
+
+\begin{figure}[tb]
+	\begin{center}
+		\includegraphics[width=.6\textwidth]{msc-rpt}
+	\end{center}
+	\caption{节点离开报告消息的~MSC~图}
+	\label{fig:mscgroupdepart}
+\end{figure}
+
+图~\ref{fig:groupleave}~给出了一个设备成组离开的例子。如图~\ref{fig:reportleave}，一个设备发现另一个设备~``消失''~了，它将该设备，连同该设备所在的组~``WearableGroup''~以及再上级的组~``HouseGroup''~全部报告为~``离开''；随后，这条消息被另一个设备发出的补充说明~(图~\ref{fig:append})~所纠正——``HouseGroup''~仍然没有离开；接收到全部这些消息之后，桥接节点转发出去的节点离开报告~(图~\ref{fig:bdgreport})~之中已经不包括~``HouseGroup''~组了，离开的只有~``WearableGroup''~组，也就是说，``WearableGroup''~组已经不是~``HouseGroup''~组的一个部分了。
 
 \begin{figure}[htb]
-	\texttt{%
+	\subfloat[组离开报告消息]{\label{fig:reportleave}%
+	\framebox{\begin{minipage}[t]{0.48\textwidth}
+		\texttt{%
 Report CS LEAVE\\
 GroupID: HouseGroup\\
 GroupID: WearableGroup\\
 Urgency: low\\
 TTL: 30\\
-DeviceID: 07707ddd-03d6-46b6-a858-f534e1\\
+DeviceID: 07707ddd-03d6-46b6\\
 Servers: 2\\
-\ldots
-	}
-	\caption{Group Device Modification}
-	\label{fig:groupdev}
-\end{figure}
-
-\begin{figure}[htb]
-	\texttt{%
+\ldots}%
+	\end{minipage}}%
+	}\qquad
+	\begin{minipage}[t]{.48\textwidth}%
+		\vspace{-1em}
+		\subfloat[补充说明消息]{\label{fig:append}%
+		\framebox{\begin{minipage}[t]{\textwidth}
+		\texttt{%
 Append OPPOSITE LEAVE\\
 GroupID: HouseGroup\\
 Urgency: low\\
-\ldots
-	}
-	\caption{Append Message}
-	\label{fig:append}
-\end{figure}
-
-If a node supports multi-mode communication, it will behave as a bridge node, which is responsible for forwarding messages from one link to another. If a ``group device modification'' message is not urgent, the bridge node will not forward it at once, on the contrary, it will wait ``Append'' messages for a while and merge them into the modification message. The bridge operation will introduce a delay
-\begin{equation}
-	T_b=\max(T_{append})+T_{random},
-	\label{eq:bridge}
-\end{equation}
-where $T_{append}$ is the longest delay of ``Append'' message, and $T_{random}$ is a random delay to avoid collision, even if no ``Append'' message is sent. However, it may prevent from forwarding unnecessary messages. And if the message is tagged as urgency, it will be forward without the $\max(T_{append})$ delay.
-
-\subsection{Application Initiated Procedures}
-
-If an application requires several CSes, it may send a ``Discover Request'' message (Fig. \ref{fig:discover-req}). Then an SN which records the CS satisfying the requirement will reply a ``Discover Response'' message (Fig. \ref{fig:discover-res}). An SN will keep silent if the contents in its record entries have been sent out by others, whereas it will sent an ``Append'' to the response if it has additional information. Moreover, if some CSes do not ready when the application performs a discovery request, the ``Discover Request'' will be refer to as a ``subscribe'' operation, thus, SNs will ``notify'' it whenever the CSes becomes ready. In addition, the notify messages can be sent to nodes with predetermined parameters, which may be used to recompose an application even if the initiate node is not available. 
-
-\begin{figure}[htb]
-	\texttt{%
-Discover Request\\
-ApplicationID: 76ae08ed-7f5d-400f-b931-49c\\
-Location: 07707ddd-03d6-46b6-a858-f534e1\\
+\ldots }%
+		\end{minipage}}%
+		}\\
+		\subfloat[桥接节点转发的报告消息]{\label{fig:bdgreport}%
+		\framebox{\begin{minipage}[t]{\textwidth}
+		\texttt{%
+Report CS LEAVE\\
+GroupID: WearableGroup\\
 Urgency: low\\
-Servers: 2\\
-\ldots
-	}
-	\caption{Discover Request}
-	\label{fig:discover-req}
+\ldots }%
+		\end{minipage}}%
+		}
+	\end{minipage}
+	\caption{组离开消息报告示例}
+	\label{fig:groupleave}
 \end{figure}
 
-\begin{figure}[htb]
-	\texttt{%
-Discover Response\\
-ApplicationID: 76ae08ed-7f5d-400f-b931-49c\\
-Location: 07707ddd-03d6-46b6-a858-f534e1\\
-Urgency: low\\
-Servers: 1\\
-\ldots
-	}
-	\caption{Discover Response}
-	\label{fig:discover-res}
+\subsection{应用发起的服务发现过程}
+
+如果一个应用在业务生成的过程中需要若干能力服务器，这时，它需要通过~``Discover Request''~消息来进行服务发现，而记录有拥有符合应用需求高级节点会给出相应的响应，将所记录的能力服务器的信息告知应用，应用进行确认之后就完成了服务发现的过程，可以调用其需要的能力服务器了，当然，确认之前应用和能力服务器可能还需要进行双方的协商。图~\ref{fig:mscservicediscover}~给出了这一过程的~MSC~图，值得注意的是，图中各个节点充当的角色只是该节点在这一过程中所充当的角色，各个节点在系统中是平等的，任何节点都有可能提供能力服务器，任意高级节点都可以作为目录节点。
+
+\begin{figure}[tb]
+	\begin{center}
+		\includegraphics[width=.6\textwidth]{msc-req}
+	\end{center}
+	\caption{服务发现过程的~MSC~图}
+	\label{fig:mscservicediscover}
 \end{figure}
+%If an application requires several CSes, it may send a ``Discover Request'' message (Fig. \ref{fig:discover-req}). Then an SN which records the CS satisfying the requirement will reply a ``Discover Response'' message (Fig. \ref{fig:discover-res}). An SN will keep silent if the contents in its record entries have been sent out by others, whereas it will sent an ``Append'' to the response if it has additional information. Moreover, if some CSes do not ready when the application performs a discovery request, the ``Discover Request'' will be refer to as a ``subscribe'' operation, thus, SNs will ``notify'' it whenever the CSes becomes ready. In addition, the notify messages can be sent to nodes with predetermined parameters, which may be used to recompose an application even if the initiate node is not available. 
+
+%\begin{figure}[htb]
+%	\texttt{%
+%Discover Request\\
+%ApplicationID: 76ae08ed-7f5d-400f-b931-49c\\
+%Location: 07707ddd-03d6-46b6-a858-f534e1\\
+%Urgency: low\\
+%Servers: 2\\
+%\ldots
+%	}
+%	\caption{Discover Request}
+%	\label{fig:discover-req}
+%\end{figure}
+%
+%\begin{figure}[htb]
+%	\texttt{%
+%Discover Response\\
+%ApplicationID: 76ae08ed-7f5d-400f-b931-49c\\
+%Location: 07707ddd-03d6-46b6-a858-f534e1\\
+%Urgency: low\\
+%Servers: 1\\
+%\ldots
+%	}
+%	\caption{Discover Response}
+%	\label{fig:discover-res}
+%\end{figure}
 
 \section{性能分析与仿真}
 
