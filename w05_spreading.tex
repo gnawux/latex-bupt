@@ -91,7 +91,7 @@ On the other hand, Huang and Chen \cite{bib:huang06} proposed a data replication
 
 在发生服务发现事件的时候，高级节点会自然地更新其存储的数据，除此之外，它们还通过目录更新消息来更新彼此存储的目录信息，每个高级节点都会以一定时间周期来公布它所存储的目录数据，这个更新周期~$T_u$~是由其上一次收到目录更新消息的时间~$T_{u0}$~和其存储的目录数据所确定的
 \begin{equation}
-	T_u = T_{u0} + T_r\cdot{}(R-R_D),
+	T_u = T_{u0} + T_r\cdot{}(R-R_D+1),
 	\label{eqn:tupdate}
 \end{equation}
 其中，$T_r$~是一个均匀分布的随机变量，用以避免碰撞，$R$~是本节点所存储的目录数据的总量，而~$R_D$~是目录中较老的，没有在近期内被更新过的记录的数量，也就是说，有较多未被更新的数据的节点更倾向于较早地发送更新消息。一旦有新节点加入到移动个人网络之中，它们可以通过的目录更新消息得初始化本地目录信息，随后，与正常的目录更新过程一样，它们可以利用得到的目录更新消息调整目录内容，在若干个更新周期之后达到稳定状态。图~\ref{fig:spread-stat}~是单个高级节点的目录数据更新的状态图，图~\ref{fig:replica}~是这一过程的伪代码。
@@ -104,12 +104,10 @@ On the other hand, Huang and Chen \cite{bib:huang06} proposed a data replication
 	\label{fig:spread-stat}
 \end{figure}
 
-%计算一下 1 初始状态下那个第一次发出更新包的时间的期望，就是前一段算过的那个，再计算一下，多拥有一个过期信息的节点早一点发出更新包的概率
-
 \begin{figure}[htb]
 	\begin{center}
 	\framebox{%
-	\begin{minipage}[t]{.8\textwidth}%
+	\begin{minipage}[t]{.9\textwidth}%
 	\texttt{%
 \mbox{~}on\_timeout()\\
 \mbox{~}\hspace{4ex} sent\_update();\\
@@ -126,7 +124,7 @@ On the other hand, Huang and Chen \cite{bib:huang06} proposed a data replication
 \mbox{~}\hspace{4ex}\hspace{4ex}  if entry[i].time\_stamp < (time\_stamp-threshold)\\
 \mbox{~}\hspace{4ex}\hspace{4ex}\hspace{4ex}   entry\_diff\_count++;\\
 \mbox{~}\hspace{4ex} timer.set\_time(rand()*\\
-\mbox{~}\hspace{4ex}\hspace{4ex}\hspace{4ex}\hspace{4ex}\hspace{4ex} (entry\_number-entry\_diff\_number));%  
+\mbox{~}\hspace{4ex}\hspace{4ex}\hspace{4ex}\hspace{4ex}\hspace{4ex} (entry\_number-entry\_diff\_number+1));%  
 	}%
 	\end{minipage}%
 	}
@@ -135,7 +133,65 @@ On the other hand, Huang and Chen \cite{bib:huang06} proposed a data replication
 	\label{fig:replica}
 \end{figure}
 
-由于目录更新消息是在高级节点之间以组播方式传送的，因此，当同时加入节点的数量增加的时候，目录达到稳定的时间不会线性增长。
+由于目录更新消息是在高级节点之间以组播方式传送的，因此，当同时加入节点的数量增加的时候，目录达到稳定的时间不会线性增长，达到稳定的时间至多不会比所有的高级节点将全部目录数据发送出来。
+
+假设当前的网络中有~$s$~个已经处于稳定状态的高级节点，这些节点中所有记录都处于未过期状态，即~$R_D=0$，这时，每个节点的定时器溢出时间都服从一个区间~$[T_{u0},T_{u0}+T_{ur}]$~上的均匀分布，其中~$T_{ur}=T_r\cdot (R+1)$，而对于正个系统来说，发送的时间将是所有节点发送定时器溢出时间的最小值
+\begin{equation}
+	t_{sent}=\min_{i=1}^{s}\left(T_{u0}+t_i\right)
+	\label{equ:tomin}
+\end{equation}
+其中，$t_i$~是区间~$[0,T_{ur}]$~上服从均匀分布的随机变量，$T_{u0}+t_i$~是节点~$i$~的定时器溢出时间。这样，目录更新消息发送时间早于~$T_{u0}+x$~的概率为
+\begin{eqnarray}
+	F\left(t_{sent}<T_{u0}+x\right) & = & F\left(\min_{i=1}^s\left(t_i\right)<x\right)\nonumber\\
+	                                & = & 1 - F\left(t_1>x,t_2>x,\cdots,t_s>x\right)
+	\label{eq:propsent1}
+\end{eqnarray}
+不妨设各个节点的计时器溢出时间的概率分布是独立的，这样
+\begin{equation}
+	F\left(t_{sent}<T_{u0}+x\right)  =  1 - \prod_{i=1}^{s}F\left(t_i>x\right)
+	\label{eq:propsent2}
+\end{equation}
+由于各个节点的计时器溢出时间都遵循均匀分布随机，所以
+\begin{equation}
+	F\left(t_{sent}<T_{u0}+x\right) = \begin{cases}
+		1 - \frac{\left(T_{ur}-x\right)^s}{\left(T_{ur}\right)^s} & \text{if} \quad 0 \le x \le T_{ur} \\
+		0                                            & \text{otherwise}
+	\end{cases}
+	\label{eq:propsent3}
+\end{equation}
+这样，目录更新消息发送，即最短计时器溢出时间的概率密度函数$\frac{dF}{dx}$为
+\begin{equation}
+	f\left(x\right)=\begin{cases}
+		\frac{s\left(T_{ur} - x\right)^{s-1}}{T_{ur}^s} & \text{if} \quad 0 \le x \le T_{ur}\\
+		0 & \text{otherwise}
+	\end{cases}
+	\label{eq:propdense}
+\end{equation}
+图~\ref{fig:propdense}~绘制出了~$T_{ur}$~归一化的不同的~$s$~值对应的更新发送时间的概率密度函数，可以看到，网络中的高级节点越多，发送目录更新消息的时间也就越早，其期望值是
+\begin{eqnarray}
+	E(x) & = & \int_{-\infty}^{\infty}x\cdot f(x)\,dx \nonumber\\
+	     & = & \int_{0}^{T_{ur}} \frac{s x \left(T_{ur} - x\right)^{s-1}}{T_{ur}^s} dx \nonumber\\
+     	 & = & \frac{ T_{ur}}{ \left( s + 1 \right)}
+	\label{eq:expectsent}
+\end{eqnarray}
+
+\begin{figure}[htb]
+	\begin{center}
+		\includegraphics[width=.6\textwidth]{propdense}
+	\end{center}
+	\caption{目录更新消息发送时间的概率密度函数}
+	\label{fig:propdense}
+\end{figure}
+
+现在考虑两个节点所包含的较老数据记录数量不同的情况，假设两节点的~$R-R_D+1$~值分别为~$r_0$~和~$r_0+r$，其中~$r_0 \ge 1,r > 0, r_0+r \le R$，则两个节点的发送时间~$t_1$~和~$t_2$~将分别服从区间~$[T_{u0},T_{u0}+T_r\cdot r_0]$~和区间~$[T_{u0},T_{u0}+T_r\cdot\left(r_0+r\right)]$，这样，$t_1<t_2$~的概率则为
+\begin{eqnarray}
+	F(t_1<t_2) & = & \int_{-\infty}^{\infty}\int_{-\infty}^{t_2}f(t_1)f(t_2) dt_1 dt_2 \nonumber\\
+	           & = & \int_{T_{u0}}^{T_{u0}+T_r\cdot r_0}\!\int_{T_{u0}}^{t_2}\frac{1}{T_r\cdot r_0}\cdot\frac{1}{T_r\cdot\left(r_0+r\right)}dt_1 dt_2 + \int_{T_{u0}+T_r\cdot r_0}^{T_{u0}+T_r\cdot\left(r_0+r\right)}\frac{1}{T_r\cdot\left(r_0+r\right)}dt_2\nonumber\\
+			   & = & \frac{r_0+2r}{2(r0+r)}
+	\label{eq:proplt1}
+\end{eqnarray}
+
+这样，考虑
 
 表~\ref{tab:exam}~是一个节点加入过程的例子：假设原有~15~个高级节点，每个节点存储~8~条目录记录，而总共有~30~条记录，这样，每条记录大约有~4~个备份。表中情况为~4~个高级节点同时加入，它们通过目录更新消息来进行初始化。表~\ref{tab:exam}~中，每个表格代表了一个更新周期，表格的第一行则表示更新消息的内容，圆括号里的数字是发送目录更新消息的节点的编号；表中的其它每行都是代表一个新加入节点的目录内容，其中的内容是按照每条记录在该节点内的优先级来排序的，每次更新后新增加的记录用下划线标明。
 
