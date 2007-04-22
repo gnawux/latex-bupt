@@ -6,15 +6,21 @@
 
 分布式终端系统中的高级节点的关键任务之一是维护系统的状态，即分布式地存储系统中的可用资源信息与系统中的业务应用的状态信息，保障这些信息在移动过程中的可靠性和节点大量变动的情况下数据存取的高效性，同时，数据维持工作也应该较低地消耗节点的计算、存储、通信带宽和能量资源，尽量少地影响系统中运行的其它应用。
 
-\section{对等网络中的分布式数据存储方式}
+作为一个分布式系统，分布式终端系统可以采用有中心或者无中心两大类方式来存储这些系统中的资源和状态信息，前者的优点在于数据的组织管理开销比较低，只有少数中心节点需要维护管理数据、处理数据一致性问题，但是，由于用户周边设备的稳定性较低、能力有限，这种依赖于少数节点的工作方式的可靠性和可扩展性都比较有限；另一方面，从~20~世纪末开始，对等网络~(P2P)~技术逐渐在互联网上流行并进一步拓展到包括移动自组织网络在内的各种计算机网络之上，通过节点间的协同来存储数据，不再受限于单一节点的能力，完全避免了中心节点失效导致整个系统无法工作的问题，极大地提高了系统的可用性和可扩展性。
 
-As a centralized directory such as that in Service Location Protocol (SLP) or Jini is hard to survive in mobility event of mobile personal networks, decentralized directory and data replication among nodes are adopted in order to improve the robustness. Discrete Hash Table (DHT) based methods, such as chord \cite{bib:chord_sigcom} and pastry \cite{bib:pastry}, enable a distributed storage infrastructure for Internet, however, each node in a DHT ring should keep routing information of $O(\log{}N)$ peers and an additional node's joining costs a lookup ($O(\log{}N)$ messages) and updating routing informations in $O(\log{}N)$ nodes \cite{bib:chord_sigcom}. As the nodes often joining a mobile personal network as groups, DHT based infrastructure may not handle it effectively. 
+本章试图通过对移动个人网络中的系统相关信息与其工作方式的分析，给出一种与其他相关工作相比适用于此种网络的分布式信息存储方式。
 
-On the other hand, Huang and Chen \cite{bib:huang06} proposed a data replication method considering group mobility in MANET, in which a hierarchical structure is adopted. 
+\section{分布式系统中的数据存储}
 
-\subsection{结构化方式存储}
+As a centralized directory such as that in Service Location Protocol (SLP) or Jini is hard to survive in mobility event of mobile personal networks, decentralized directory and data replication among nodes are adopted in order to improve the robustness. Discrete Hash Table (DHT) based methods, such as chord  and pastry , enable a distributed storage infrastructure for Internet, however, each node in a DHT ring should keep routing information of $O(\log{}N)$ peers and an additional node's joining costs a lookup ($O(\log{}N)$ messages) and updating routing informations in $O(\log{}N)$ nodes . As the nodes often joining a mobile personal network as groups, DHT based infrastructure may not handle it effectively. 
 
-\subsection{非结构化方式存储}
+On the other hand, Huang and Chen  proposed a data replication method considering group mobility in MANET, in which a hierarchical structure is adopted. 
+
+\subsection{传统的有中心存储方式}
+
+\subsection{非结构化无中心数据存储}
+
+\subsection{结构化无中心数据存储}
 
 \section{移动个人网络的分布式数据存储}
 
@@ -76,9 +82,9 @@ On the other hand, Huang and Chen \cite{bib:huang06} proposed a data replication
 \subsection{移动个人网络数据的无中心组织方法}
 
 %尽量减少全局状态，以组为单位是个折衷，全局信息全局存储，小组信息小组存储
-对于全局信息的存储，为了均衡各个节点的负担，提高系统的可靠性和可伸缩性，论文中采用了一种将数据以无中心方式分布到各个节点之上的方法，并通过一定的冗余度，保障在节点大规模损失的情况下的数据可靠性。数据信息会被组播到所有的高级节点，而每个高级节点都通过一个自己的优先级算法，将优先级较高的一些记录保存在自己的存储空间之中，而不保存优先级较低的记录。每条记录在特定节点的优先级~($P_d(r)$)~的计算是通过一个哈希函数~($h(\cdot)$)~来实现的：定义记录的~ID~和节点的~ID~哈希值的距离为该记录在此节点上的存储优先级
+对于全局信息的存储，为了均衡各个节点的负担，提高系统的可靠性和可伸缩性，论文中采用了一种将数据以无中心方式分布到各个节点之上的方法，并通过一定的冗余度，保障在节点大规模损失的情况下的数据可靠性。数据信息会被组播到所有的高级节点，而每个高级节点都通过一个自己的优先级算法，将优先级较高的一些记录保存在自己的存储空间之中，而不保存优先级较低的记录。每条记录~(r)~在特定节点~(n)~的优先级~($P_n(r)$)~的计算是通过一个哈希函数~($h(\cdot)$)~来实现的：定义记录的~ID~和节点的~ID~哈希值的距离为该记录在此节点上的存储优先级
 \begin{equation}
-	P_{d}(r)=|h(r)-h(d)|
+	P_{n}(r)=d(h(r)-h(n))
 	\label{eq:priority}
 \end{equation}
 这里，哈希值的分布特性将决定存储的分布特征，为了保证数据分布的均匀性，论文选择了常用的~SHA-1~算法作为哈希函数，对于非特殊选择的~ID，其哈希值应遵循均匀分布。在这种情况下，对于存储于~$s$~个高级节点中的~$r$~条信息，如果每个高级节点存储~$\gamma$~条信息，则信息冗余度大致为
@@ -86,6 +92,15 @@ On the other hand, Huang and Chen \cite{bib:huang06} proposed a data replication
 	\rho=\frac{\gamma{}s}{r}.
 	\label{eq:redundancy}
 \end{equation}
+对于哈希函数一定的取值范围，上述距离实际是一个圆周距离的概念，如图~\ref{fig:hashoverview}，高级节点会优先保存哈希值具体自己的哈希值比较近的~$R$~条记录，当记录条目比较多的时候，一个节点的覆盖范围就比较狭窄，而当记录条目较少的时候，节点发覆盖范围就比较宽，而冗余度本身则取决于节点的覆盖范围和节点密度两者的比值。
+
+\begin{figure}[htb]
+	\begin{center}
+		\includegraphics[width=.9\textwidth]{hash-overview}
+	\end{center}
+	\caption{高级节点所保存的记录的键值范围示意}
+	\label{fig:hashoverview}
+\end{figure}
 
 \subsection{目录数据向新加入节点传播}
 
@@ -175,7 +190,7 @@ On the other hand, Huang and Chen \cite{bib:huang06} proposed a data replication
 	\label{eq:expectsent}
 \end{eqnarray}
 
-\begin{figure}[htb]
+\begin{figure}[tb]
 	\begin{center}
 		\includegraphics[width=.6\textwidth]{propdense}
 	\end{center}
@@ -183,15 +198,35 @@ On the other hand, Huang and Chen \cite{bib:huang06} proposed a data replication
 	\label{fig:propdense}
 \end{figure}
 
+当所有节点的数据记录都处在未过期状态时，各个节点以均等概率发送目录更新消息，如图~\ref{fig:hashoverlap}~所示的圆周上，若每个节点的覆盖范围的夹角为~$\theta=\frac{2\pi R}{R_{all}}$，其中~$R_{all}$~为总记录数，R~为每个节点存储的记录条数，两个节点之间的夹角为~$\phi$，则当~$\phi\ge\theta$~时两者不存在交叠区域，发送信息的总量即为~$2R$，否则，两次发送信息的总量存在一个交叠区域，两者覆盖面积总和为~$\theta+\phi$，发送的记录条数为~$\frac{R_{all}\left(\theta+\phi\right)}{2\pi}$。由于各个节点以均等概率发送目录更新消息，$\phi$~遵循~$[0,2\pi]$~上的均匀分布，所以，两次发送信息总量的数学期望~$E(R_s)$~为
+\begin{eqnarray}
+	E(R_s)  & = & \int_{0}^{2\pi}R_s(\phi)f(\phi)d\phi \nonumber\\
+			& = & 2\int_{0}^{\theta}\frac{R_{all}(\theta+\phi)}{2\pi}\frac{1}{2\pi}d\phi%
+			         + 2\int_{\theta}^{\pi}2R\frac{1}{2\pi}d\phi \nonumber\\
+					 & = & (2-\frac{R}{R_{all}})\cdot R
+	\label{eq:allsent}
+\end{eqnarray}
+
+\begin{figure}[tb]
+	\begin{center}
+		\includegraphics[width=.7\textwidth]{hash-overlap}
+	\end{center}
+	\caption{高级节点存储覆盖范围之间的交叠情况}
+	\label{fig:hashoverlap}
+\end{figure}
+
 现在考虑两个节点所包含的较老数据记录数量不同的情况，假设两节点的~$R-R_D+1$~值分别为~$r_0$~和~$r_0+r$，其中~$r_0 \ge 1,r > 0, r_0+r \le R$，则两个节点的发送时间~$t_1$~和~$t_2$~将分别服从区间~$[T_{u0},T_{u0}+T_r\cdot r_0]$~和区间~$[T_{u0},T_{u0}+T_r\cdot\left(r_0+r\right)]$，这样，$t_1<t_2$~的概率则为
 \begin{eqnarray}
 	F(t_1<t_2) & = & \int_{-\infty}^{\infty}\int_{-\infty}^{t_2}f(t_1)f(t_2) dt_1 dt_2 \nonumber\\
-	           & = & \int_{T_{u0}}^{T_{u0}+T_r\cdot r_0}\!\int_{T_{u0}}^{t_2}\frac{1}{T_r\cdot r_0}\cdot\frac{1}{T_r\cdot\left(r_0+r\right)}dt_1 dt_2 + \int_{T_{u0}+T_r\cdot r_0}^{T_{u0}+T_r\cdot\left(r_0+r\right)}\frac{1}{T_r\cdot\left(r_0+r\right)}dt_2\nonumber\\
-			   & = & \frac{r_0+2r}{2(r0+r)}
+	           & = & \int_{T_{u0}}^{T_{u0}+T_r\cdot r_0}\!\int_{T_{u0}}^{t_2}\frac{1}{T_r\cdot r_0}\cdot\frac{1}{T_r\cdot\left(r_0+r\right)}dt_1 dt_2 \nonumber\\
+			   &   &  + \int_{T_{u0}+T_r\cdot r_0}^{T_{u0}+T_r\cdot\left(r_0+r\right)}\frac{1}{T_r\cdot\left(r_0+r\right)}dt_2\nonumber\\
+			   & = & \frac{r_0+2r}{2(r0+r)}\nonumber\\
+			   & = & 1-\frac{r_0}{2(r0+r)}
 	\label{eq:proplt1}
 \end{eqnarray}
+也就是说，随着~$r$~的增加，具有较多较老数据记录的节点具有更高的较早发送目录更新消息的概率，当~$r>\!\!>r_0$~的时候，这一概率也趋近于~1。
 
-这样，考虑
+由上述分析可知，在新节点加入过程中，
 
 表~\ref{tab:exam}~是一个节点加入过程的例子：假设原有~15~个高级节点，每个节点存储~8~条目录记录，而总共有~30~条记录，这样，每条记录大约有~4~个备份。表中情况为~4~个高级节点同时加入，它们通过目录更新消息来进行初始化。表~\ref{tab:exam}~中，每个表格代表了一个更新周期，表格的第一行则表示更新消息的内容，圆括号里的数字是发送目录更新消息的节点的编号；表中的其它每行都是代表一个新加入节点的目录内容，其中的内容是按照每条记录在该节点内的优先级来排序的，每次更新后新增加的记录用下划线标明。
 
