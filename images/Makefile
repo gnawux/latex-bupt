@@ -1,7 +1,7 @@
 
 all:mpfig mscs
 
-mpfig:spread-st.eps status.eps hash-overlap.eps hash-overview.eps
+mpfig:spread-st.eps status.eps hash-overlap.eps hash-overview.eps luproto.eps
 
 spread-st.eps:spread-st.mp
 	mpost spread-st.mp
@@ -22,6 +22,11 @@ hash-overview.eps:hash-overview.mp
 	mpost hash-overview.mp
 	mptopdf hash-overview
 	cp -f hash-overview.1 hash-overview.eps
+
+luproto.eps:luproto.mp
+	mpost luproto.mp
+	mptopdf luproto
+	cp -f luproto.1 luproto.eps
 
 mscs:msc-req.eps msc-rpt.eps msc-sdm.eps
 

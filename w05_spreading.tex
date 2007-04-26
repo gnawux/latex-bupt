@@ -1,6 +1,6 @@
 %$Id: w05_spreading.tex gnawux $
 %  vim: set ft=tex:
-\chapter{移动个人网络中的分布式信息存储}
+\chapter{移动个人网络中的分布式系统信息存储}
 
 \section{引言}
 
@@ -8,23 +8,83 @@
 
 作为一个分布式系统，分布式终端系统可以采用有中心或者无中心两大类方式来存储这些系统中的资源和状态信息，前者的优点在于数据的组织管理开销比较低，只有少数中心节点需要维护管理数据、处理数据一致性问题，但是，由于用户周边设备的稳定性较低、能力有限，这种依赖于少数节点的工作方式的可靠性和可扩展性都比较有限；另一方面，从~20~世纪末开始，对等网络~(P2P)~技术逐渐在互联网上流行并进一步拓展到包括移动自组织网络在内的各种计算机网络之上，通过节点间的协同来存储数据，不再受限于单一节点的能力，完全避免了中心节点失效导致整个系统无法工作的问题，极大地提高了系统的可用性和可扩展性。
 
-本章试图通过对移动个人网络中的系统相关信息与其工作方式的分析，给出一种与其他相关工作相比适用于此种网络的分布式信息存储方式。
+本章试图通过对移动个人网络中的系统相关信息与其工作方式的分析，给出一种与其他相关工作相比适用于此种网络的系统信息的分布式存储方式。
 
-\section{分布式系统中的数据存储}
+\section{分布式系统的系统资源数据存储}
 
-As a centralized directory such as that in Service Location Protocol (SLP) or Jini is hard to survive in mobility event of mobile personal networks, decentralized directory and data replication among nodes are adopted in order to improve the robustness. Discrete Hash Table (DHT) based methods, such as chord  and pastry , enable a distributed storage infrastructure for Internet, however, each node in a DHT ring should keep routing information of $O(\log{}N)$ peers and an additional node's joining costs a lookup ($O(\log{}N)$ messages) and updating routing informations in $O(\log{}N)$ nodes . As the nodes often joining a mobile personal network as groups, DHT based infrastructure may not handle it effectively. 
+本章所考虑的分布式资源存储并非一个分布式文件系统，因为这里要存储的数据规格一致、具有很强的结构性，即系统可用资源描述与应用状态，而并不存在非格式化、二进制数据，不存在目录、管道、链接等特殊类型，因此，其存储的数据实际是一些目录数据，除了数据库之外，很多其它互联网上的协议~(如表~\ref{tab:dirproto}~所列)~也都支持这类操作，其共性是
+\begin{itemize}
+	\item 以~``请求/响应''~方式工作，发出查询请求、得到查询结果；
+	\item 查询请求可以通过某些限制条件获得符合条件的若干记录，或得到请求无法满足的响应结果；
+	\item 响应结果使用协议规定的标准格式，具有明确语义；
+	\item 部分协议支持~``注册/声明''~操作，用以发布信息。
+\end{itemize}
+其工作方式如图~\ref{fig:dirproto}~所示。
 
-On the other hand, Huang and Chen  proposed a data replication method considering group mobility in MANET, in which a hierarchical structure is adopted. 
+\begin{table}[tb]
+	\centering
+	\begin{tabular}{lp{.6\textwidth}}
+		\hline
+		协议名称 & 描述 \\
+		\hline
+		SLP		& Service Location Protocol (RFC2608), 服务定位协议 \\
+		LDAP	& Lightweight Directory Location Protocol, 轻量级目录访问协议 \\
+		NIS     & Network Information Service, 网络信息服务~(黄页服务) \\
+		DNS		& Domain Name Service, 域名服务\\
+		Jini	& Jini\texttrademark~的核心之一是一个查询服务\\
+		SSDP	& Simple Service Discovery Protocol, 简单服务发现协议，UPnP~中的服务发现协议\\
+		\hline
+	\end{tabular}
+	\caption{具有类似目录查询工作方式的网络协议举例}
+	\label{tab:dirproto}
+\end{table}
+
+\begin{figure}[tb]
+	\begin{center}
+		\includegraphics[width=.5\textwidth]{luproto}
+	\end{center}
+	\caption{目录查询工作方式示意}
+	\label{fig:dirproto}
+\end{figure}
+
+作为网络通信协议，表~\ref{tab:dirproto}~所列的协议一般都只规范网络上传播的~``查询/注册''~消息，而不规范数据的存储方式，在通常的实现中，这些目录数据会存储于服务器本地的数据结构之中，但通过构建一个~P2P~的层叠网络，将数据存储于这个网络之内，也可以完成类似的工作。
 
 \subsection{传统的有中心存储方式}
 
+对于表~\ref{tab:dirproto}~中所述的协议，它们的工作的基础都需要首先设定或得到一个目录服务器的地址，以~SLPv2 (SLP~版本~2)~为例，服务提供者~(称为服务代理，Service Agent, SA)~或作为服务的使用者的应用~(称为用户代理，User Agent, UA)~可以通过主动和被动两种方法获得提供目录的服务器~(目录代理，Directory Agent, DA)~的地址，而其它协议中，目录服务器的地址则更多依赖于手工指定或是通过自动配置过程~(如~DHCP)~获取。由于这些目录服务的地址一般是一个或几个单播~IP~地址，因此，传统的目录信息的存储方式也天然地是有中心的。
+
+有中心的存储方式在网络中面临着两个主要问题：
+\begin{itemize}
+	\item 由于网络连接和服务器自身的可靠性是有限的，中心节点或关键链路失效会导致尽管整个系统的大部分元素工作正常，但服务却无法正常进行。
+	\item 由于中心节点的存储、计算能力和通信带宽都是有限的，当系统的规模增大的时候，中心节点相关的性能将成为整个系统的瓶颈。
+\end{itemize}
+
+当然，有中心架构并非只有一个节点，通过多个中心节点进行互相备份与负载均衡，有中心的存储方式可以在一定程度上缓解这一可靠性和可伸缩性的问题。然而，对于移动个人网络所在的个人域环境，由于个人域设备的能力和可靠性都难以保障，少量的备份不足以让移动个人网络有效避免这一问题，因此，本论文考虑将存储的信息更进一步的分布化，使用无中心架构来存储目录信息。
+
+%As a centralized directory such as that in Service Location Protocol (SLP) or Jini is hard to survive in mobility event of mobile personal networks, decentralized directory and data replication among nodes are adopted in order to improve the robustness. Discrete Hash Table (DHT) based methods, such as chord  and pastry , enable a distributed storage infrastructure for Internet, however, each node in a DHT ring should keep routing information of $O(\log{}N)$ peers and an additional node's joining costs a lookup ($O(\log{}N)$ messages) and updating routing informations in $O(\log{}N)$ nodes . As the nodes often joining a mobile personal network as groups, DHT based infrastructure may not handle it effectively. 
+
 \subsection{非结构化无中心数据存储}
+
+对等~(Peer-to-Peer, P2P)~架构是有别于~``客户机-服务器''~架构的一种分布式系统架构模型，因为不区分客户机与服务器，所以也被称为无中心架构，自从~20~世纪末在文件共享领域被广泛使用之后，逐步引起更多研究者的注意，其突出优点是所有参与者都是客户机也都是服务器，因此不存在任何会影响整个系统工作的关键点，呈现出很强的自组织特性。在诸如~Gnutella~等早期纯粹的~P2P~网络协议中，所有的节点之间是完全没有组织的，节点之间的信息查找使用所谓的~``泛洪''~方式，即从一点起，向所有已知的节点散播查询消息，借到查询消息的节点会把用同样方法得到的信息返回给查找者，当然，一次查找所散播的跳数被限制在一个很有限的值之内，以避免过长的响应时间以及过度占用网络带宽。
+
+由于节点间的松散关系，与下文将要提到的~``结构化''~P2P~相对应，这种基于泛洪式查询的无中心存储架构被称为非结构化的~P2P~架构，这种架构的优点和缺点都十分明显，它的突出优点在于没有任何组织开销，不需要任何节点为整个系统的组织负责，工作方式稳定而可靠，然而，它所带来的最显著的缺点就在于~``不确定性''，即当一次查找没有得到结果的时候，发起查找的客户端无法确定被查找者是根本不存在还是恰恰在自己查找范围之外一点点而已，另一个缺点就是~``泛洪''~式的通信会对网络带宽有较大的影响，且不可管控。
 
 \subsection{结构化无中心数据存储}
 
+所谓~``结构化''~无中心架构是利用某种映射关系，将系统中存储的元素与存储这些元素的节点相对应起来，从而可以在有限步骤内，查询到一个元素或是确定地知道该元素不存在。一种比较常见的用于结构化~P2P~中查询机制的映射关系是所谓的分布式哈希表~(Distributed Hashing Table, DHT)，即使用一个哈希函数处理存储节点的名称~(地址)~和要存储的数据的名称，将所得到的哈希值排列在一个圆周之上，把哈希值相邻的两个节点~$N_k$~和~$N_{k+1}$~之间的所有要存储的数据都交给节点~$N_k$~来保存，也就是说，当希望找到哈希值为~$h$~的数据元素，只要找到哈希值刚刚好~``小于''~$h$~的节点查询一下就可以了，记该节点的值为~$\lfloor h\rfloor$，这里，``小于''~是圆周上的小于，如果哈希函数的值域是~$\left[0,H\right)$~的话，$0$~是大于~$H-1$~的。
+
+对于~DHT~方法来说，各个不同的协议或机制的差异就在于给定一个哈希值~$h$，如何找到哈希值为~$\lfloor h\rfloor$~的节点。比较容易理解的方式是每个节点都保存它下一个节点的地址和哈希值，构成一个环形的链，只要一环一环地找，就可以找到需要的节点，这个方法的复杂度显然是~$O(N)$~的，相比于泛洪工作方式的指数蔓延速度，这个确定性的代价实在是太大了。于是，Chord、Pastry~等基于~DHT~的机制都让每个节点多存储一些相关节点的信息，从而加速这个查找过程，以~Chord~为例，通过付出每个节点存储~$O(\log(N))$~个相关节点的信息的代价，使得这个查询过程的复杂度可以减少到~$O(\log(N))$，从而进入一个可以接受的范围。当然，存储相关节点的信息越多，当节点发生变更的时候，在系统中受影响的节点也就越多，管理维护开销也就越大。
+
+DHT~方法中，通过节点之间的交互，逐步地查找目的节点，这一过程和网络层的路由有些类似，只是发生在应用层。除了层面的区别之外，另一个区别就是查找所依据的键值，网络层查找依赖于网络地址，这个地址强烈地反映了节点之间的拓扑位置关系，地址越接近，两个节点之间也越接近，而~DHT~方法的~``应用层路由''~则是完全的数学意义上的接近，和拓扑位置的接近完全无关，因此，这层覆盖在网络层以上的层叠网络~(Overlay)~带来的数据分布在拓扑上的无规律性对于负载均衡等很多考量都是十分有益的，但同时，对于消息传播的效率是也有一定影响。
+
 \section{移动个人网络的分布式数据存储}
 
-具体地考虑移动个人网络中的分布式数据存储，
+具体地考虑移动个人网络中的分布式数据存储，作为~MANET~的一个子集，移动个人网络同样是没有任何基础设施，具有很强的对等与自组织性，这与无中心的应用~Overlay~非常类似，而且，由于移动个人网络中，并不假设设备具有高性能与高可用性，需要避免因部分设备失效而带来的系统服务中断。因此，有必要将移动个人网络中的所有具有一定能力的节点，即高级节点，组织起来，成为一个分布式系统信息存储~Overlay。
+
+然而，对于移动个人网络来说，结构化和非结构化的~P2P~方式均有其各自的不足：无中心的~P2P~分布式系统通常用于资源共享，没有固定的存储机制，不存在一个确定的~``存储元素-存储节点''~的映射关系，而分布式终端系统则需要一个相对可靠的
+%综合结构化和非结构化，在存储过程引入结构化的内容，而在查询过程使用非结构化的泛洪手段
+%因为这样快速且不会对网络造成显著冲击(需要论证)，结构化的优点是有组织?
+%半无中心 (所有高级节点成为中心) 与半结构化
 
 若移动个人网络中有~$n$~个节点，$N_1, N_2,\cdots,N_n$，它们分布在网络中的~$l$~个异构链路~$L_1, L2,\cdots,L_l$~上，其中有~$s$~个高级节点~($N_{S_1}, N_{S_2},\cdots,N_{S_s}$)~可以用于存储系统信息。当发生移动事件的时候，原有高级节点上的数据需要在变化之后的~$n'$~个节点中的~$s'$~个高级节点中重新分布，
 \begin{eqnarray}
