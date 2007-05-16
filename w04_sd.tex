@@ -1,0 +1,198 @@
+%  vim: set ft=tex:
+\chapter{移动个人网络中的服务发现机制}\label{ch:sd}
+
+\section{引言}
+
+对于移动个人网络这一用户为中心的网络，其工作和行为是以业务为核心展开的：网络的组成成员提供业务的各个基本元素~——~设备提供的各种服务，网络收集各种业务上下文信息，网络上运行着各种服务用户的业务，展现给用户。而在这个功能性和能力极具动态性的系统之中，业务的生成、变更与业务相关信息状态的转换都需要系统内部运行的维护机制与应用之间互相感知，充当这个纽带和桥梁作用的维护机制就是服务发现机制，或称为资源发现机制，这对于所有具有自组织特性的系统都是十分重要的。
+
+本章将分析已有的应用于自组织网络之中的服务发现机制，并结合移动个人网络的行为特征，设计基于移动性分组的移动个人网络的服务发现机制。
+
+\section{自组织网络的服务发现机制}
+
+所谓~``服务发现~(Service)''~是指自动地确定网络中的一个硬件或软件服务，如扫描仪、打印机、Web~服务器或共享文件的位置的能力。服务发现系统有两种实现方式：通过使用一个中心仓库来注册各种服务，或者提供一种方法来查询网络中的每个设备\ucite{bib:compencyc}。这里，我们将几种常见的服务发现机制进行一下比较\ucite{bib:bettstetter2000,bib:zhu2002,bib:zhangxuanfang04}。
+
+\subsection{无注册中心的服务发现}
+
+在无注册中心的情况下，客户机需要通过与服务器之间的交互来发现需要的服务，这还可以进一步划分成两类发现机制：主动发现和被动发现。
+
+所谓主动发现是指应用在需要某种服务的时候，主动发起查询请求，以广播或轮询的方式询问周围的节点，查找服务，而服务会将自己的描述信息返回给查找者，完成服务发现过程。这种服务发现方式简单而直接，蓝芽技术中的服务发现协议~(SDP)\ucite{bib:bt-sdp}~就利用这种方式进行服务发现。
+
+而被动发现方式与此相反，服务会主动地向周围节点广播自己所能提供的服务，这样，当应用需要使用某种服务的时候，可以就可以直接调用服务了。同样也有很多常见的应用使用被动式的服务发现，如~UPnP~架构中的~SSDP\cite{bib:ssdp}~协议就支持被动发现方式。同时，大多数支持被动发现的协议同时也提供主动发现方式的支持，以~SSDP~为例，当服务启动的时候，会向周围组播自己的服务，而当运行着应用的节点加入系统的时候，也会主动地寻找需要的服务。
+
+无注册中心方式的服务发现机制的优点在于：
+\begin{itemize}
+	\item 没有任何全局状态，系统完全处于自组织状态，不需要额外组织开销，即，系统中的服务的加入与删除只与相关的应用有关。
+	\item 没有中心节点，系统工作不依赖于任何节点，即，任何节点的变化不会影响系统的稳定性。
+\end{itemize}
+不过，一个完全自组织的方式同样有一些缺点：
+\begin{itemize}
+	\item 系统不保存任何全局状态，应用之间的关系也完全由应用自己负责，应用所承担的任务比较重，同时也可能浪费一些处理能力。
+	\item 系统的可伸缩性不够，随着节点或应用数量的增加，系统中的服务发现而引起的广播消息随之增加，会造成带宽资源的浪费。
+\end{itemize}
+
+因此，无注册中心方式的服务发现机制更适用于小型网络，当应用之间关系较少、应用对环境变化不敏感时比较适用，在此情况下，当系统中频繁有节点加入退出或没有稳定节点可以充当注册中心的情况下，会显示出其突出的优点。
+
+\subsection{有注册中心的服务发现}
+
+与无注册中心的服务发现机制不同，有注册中心的服务发现机制在注册中心保存一份所有服务的目录，这样，当有新服务的时候，服务会向注册中心进行注册，而应用在需要服务的时候，也会通过从注册中心查询信息。采用有注册中心方式的服务发现机制有很多，如~SLP\ucite{bib:slp}, Jini\texttrademark\ucite{bib:jini-arch}~的服务查找机制，Web Service~中的~UDDI~(统一描述、发现和集成)\ucite{bib:uddi}~等。
+
+相比于无注册中心的方式，由于具有注册中心这个服务与应用之外的第三方，有注册中心方式的服务发现机制具有如下优点：
+\begin{itemize}
+	\item 即使服务提供者和应用数量很庞大，也不会带来额外的查询负担。
+	\item 保存有全局信息，可以用于协助业务生成等业务行为，在系统环境发生变化时可以主动通知业务，而无须业务自己监视环境变化。
+\end{itemize}
+但第三方的存在也会带来一些问题，如每有节点加入或退出，注册中心都需要及时更新数据，而当同时加入或退出的节点很多的时候，会给注册中心带来较大负荷，一旦注册中心无法工作，即使其他服务都是正常的，应用仍然无法正常工作。
+
+综上，有注册中心方式的服务发现机制更适用于系统结构动态性不大的网络，可以适应较大的系统规模，并且可以利用注册中心来统一协调、影响业务的行为。
+
+\section{基于移动性分组的服务发现} \label{sec:grp}
+
+可以看出，由于分布式移动终端系统追求业务的连续性与一致性，注册中心的存在将大有益处，而另一方面，由于移动个人网络的结构动态性很强，经常会有节点成组加入或退出，这使得传统服务发现机制中的注册中心很难适应，在这方面，无注册中心方式又有其可取之处，因此，我们希望可以改进有注册中心方式的服务发现机制，增强其对系统结构变化的适应性，又保持其维护部分全局信息的优点。
+
+论文中为移动个人网络定制了一个基于移动性分组的服务发现机制。这套机制之中，在底层使用分布式的目录信息存储，当组加入系统的时候，只是底层的数据汇合，并不需要大量的消息占用带宽，同时也提高了系统可靠性；并利用一系列消息机制来反应系统的结构变化，从而相应的改变目录信息的内容，所有的控制消息都会以组播的形式发送给所有的高级节点，相比与单播，组播对于覆盖范围较小的移动个人网络也并不会带来额外的开销。
+
+为了应对所有可能出现的移动性事件和服务发现需求，我们定义了五类控制消息：
+\begin{itemize}
+	\item Advertise. 当节点加入系统之中或是自己的能力属性发生变更的时候，它会通过~``Advertise''~消息来通告给系统内的其它设备。
+	\item Report. 当节点发现邻居节点从系统之中小时，它会使用~``Report''~消息来通告节点失效事件。
+	\item Append. 当节点发现其它节点报告的消息的内容不确切的时候，会通过~``Append''~消息来修正其消息。
+	\item Discover. 如果应用对某些功能有需求的时候，会通过~``Discover''~消息来进行资源发现，同时，``Discover''~消息还具有订阅~(Subscribe)~的语义，订阅所需的能力服务器的变更状况。
+	\item Notify. 如果节点发现某个能力服务器被某个应用订阅了，其状态恰好发生了改变，它会通过~``Notify''~消息通告应用。
+\end{itemize}
+服务发现机制包括两大类过程：设备变更引发的过程和应用行为引发的服务发现过程。
+
+\subsection{设备发起的服务发现过程}
+
+当某一设备启动或是正常关闭的时候，设备的变更仅限于发生事件的设备，这一过程被称为~``单设备变更''，仅仅由设备自身向系统中的其它设备发布它的能力变化，不涉及互动，图~\ref{fig:mscsingledev}~是这一过程的~MSC~图。
+
+\begin{figure}[tb]
+	\begin{center}
+		\includegraphics[width=.6\textwidth]{msc-sdm}
+	\end{center}
+	\caption{单设备变更的~MSC~图}
+	\label{fig:mscsingledev}
+\end{figure}
+
+图~\ref{fig:singledev}~是设备开启时发送的单设备变更消息示例，消息以控制消息类型~(Advertise)~开头，并说明消息是声明新加入的能力服务器，并在消息之中描述了两个新加入的能力服务器的类型和能力值。
+
+\begin{figure}[tb]
+	\begin{center}
+	\framebox{%
+	\begin{minipage}[t]{.8\textwidth}%
+	\texttt{%
+Advertise CS JOIN\\
+DeviceID: 07707ddd-03d6-46b6-a858-f534e1\\
+Urgency: low\\
+TTL: 30\\
+Servers: 2\\
+ServerType: 33dd\\
+CAPA: 55\\
+ServerType: 49fb\\
+CAPA: 45
+	}%
+	\end{minipage}%
+	}
+	\end{center}
+	\caption{单设备变更消息示例}
+	\label{fig:singledev}
+\end{figure}
+
+与上述过程不同，当一个节点注意到它与相邻节点的连接在没有得到任何通告的情况下中断的时候，它无法判断该节点是因为自身出现故障而失效还是该节点与其所在的组一起离开了自己的通信范围，而如果是后者，因为移动性分组具有层次性，统一节点可能会依次隶属与从小到大的若干个组，是哪个组离开同样不能确定。因此，报告离开事件的节点会假设最大组已经离开，而发送出~``Report''~消息，而收到消息的其它节点如果发现消息中所述的组实际并没有离开则会发出~``Append''~消息，来对这个消息进行补充。图~\ref{fig:mscgroupdepart}~展示了节点离开报告的典型过程，图中特别地标示了连接不同链路的桥接节点的行为，该节点对于收到的~``Report''~消息并不立刻转发到其它介质中去，而是等待一段时间，在这期间，如果有节点发出~``Append''~消息，桥接节点在转发的时候会将上述消息汇聚在一起，形成一个更加简短、准确的~``Report''~消息转发出来。这一熔合转发过程会引入一个~``桥接时延''
+\begin{equation}
+	T_b=\max(T_{append})+T_{random},
+	\label{eq:bridge}
+\end{equation}
+其中~$T_{append}$~是~``Append''~消息可能导致的最长时延，而~$T_{random}$~是一个用于避免碰撞的随机时延，由于是否会有~``Append''~消息不可预知，即使没有~``Append''~消息，这个时延也不可避免，不过，这个时延的引入可以防止不必要的消息转发。并且，如果消息被标记为~``Urgency~(紧急的)''，该消息会的转发时延中将没有~$T_{append}$~这一部分。
+
+\begin{figure}[tb]
+	\begin{center}
+		\includegraphics[width=.6\textwidth]{msc-rpt}
+	\end{center}
+	\caption{节点离开报告消息的~MSC~图}
+	\label{fig:mscgroupdepart}
+\end{figure}
+
+图~\ref{fig:groupleave}~给出了一个设备成组离开的例子。如图~\ref{fig:reportleave}，一个设备发现另一个设备~``消失''~了，它将该设备，连同该设备所在的组~``WearableGroup''~以及再上级的组~``HouseGroup''~全部报告为~``离开''；随后，这条消息被另一个设备发出的补充说明~(图~\ref{fig:append})~所纠正——``HouseGroup''~仍然没有离开；接收到全部这些消息之后，桥接节点转发出去的节点离开报告~(图~\ref{fig:bdgreport})~之中已经不包括~``HouseGroup''~组了，离开的只有~``WearableGroup''~组，也就是说，``WearableGroup''~组已经不是~``HouseGroup''~组的一个部分了。
+
+\begin{figure}[htb]
+	\subfloat[组离开报告消息]{\label{fig:reportleave}%
+	\framebox{\begin{minipage}[t]{0.48\textwidth}
+		\texttt{%
+Report CS LEAVE\\
+GroupID: HouseGroup\\
+GroupID: WearableGroup\\
+Urgency: low\\
+TTL: 30\\
+DeviceID: 07707ddd-03d6-46b6\\
+Servers: 2\\
+\ldots}%
+	\end{minipage}}%
+	}\qquad
+	\begin{minipage}[t]{.48\textwidth}%
+		\vspace{-1em}
+		\subfloat[补充说明消息]{\label{fig:append}%
+		\framebox{\begin{minipage}[t]{\textwidth}
+		\texttt{%
+Append OPPOSITE LEAVE\\
+GroupID: HouseGroup\\
+Urgency: low\\
+\ldots }%
+		\end{minipage}}%
+		}\\
+		\subfloat[桥接节点转发的报告消息]{\label{fig:bdgreport}%
+		\framebox{\begin{minipage}[t]{\textwidth}
+		\texttt{%
+Report CS LEAVE\\
+GroupID: WearableGroup\\
+Urgency: low\\
+\ldots }%
+		\end{minipage}}%
+		}
+	\end{minipage}
+	\caption{组离开消息报告示例}
+	\label{fig:groupleave}
+\end{figure}
+
+\subsection{应用发起的服务发现过程}
+
+如果一个应用在业务生成的过程中需要若干能力服务器，这时，它需要通过~``Discover Request''~消息来进行服务发现，而记录有拥有符合应用需求高级节点会给出相应的响应，将所记录的能力服务器的信息告知应用，应用进行确认之后就完成了服务发现的过程，可以调用其需要的能力服务器了，当然，确认之前应用和能力服务器可能还需要进行双方的协商。图~\ref{fig:mscservicediscover}~给出了这一过程的~MSC~图，值得注意的是，图中各个节点充当的角色只是该节点在这一过程中所充当的角色，各个节点在系统中是平等的，任何节点都有可能提供能力服务器，任意高级节点都可以作为目录节点。
+
+\begin{figure}[tb]
+	\begin{center}
+		\includegraphics[width=.6\textwidth]{msc-req}
+	\end{center}
+	\caption{服务发现过程的~MSC~图}
+	\label{fig:mscservicediscover}
+\end{figure}
+%If an application requires several CSes, it may send a ``Discover Request'' message (Fig. \ref{fig:discover-req}). Then an SN which records the CS satisfying the requirement will reply a ``Discover Response'' message (Fig. \ref{fig:discover-res}). An SN will keep silent if the contents in its record entries have been sent out by others, whereas it will sent an ``Append'' to the response if it has additional information. Moreover, if some CSes do not ready when the application performs a discovery request, the ``Discover Request'' will be refer to as a ``subscribe'' operation, thus, SNs will ``notify'' it whenever the CSes becomes ready. In addition, the notify messages can be sent to nodes with predetermined parameters, which may be used to recompose an application even if the initiate node is not available. 
+
+%\begin{figure}[htb]
+%	\texttt{%
+%Discover Request\\
+%ApplicationID: 76ae08ed-7f5d-400f-b931-49c\\
+%Location: 07707ddd-03d6-46b6-a858-f534e1\\
+%Urgency: low\\
+%Servers: 2\\
+%\ldots
+%	}
+%	\caption{Discover Request}
+%	\label{fig:discover-req}
+%\end{figure}
+%
+%\begin{figure}[htb]
+%	\texttt{%
+%Discover Response\\
+%ApplicationID: 76ae08ed-7f5d-400f-b931-49c\\
+%Location: 07707ddd-03d6-46b6-a858-f534e1\\
+%Urgency: low\\
+%Servers: 1\\
+%\ldots
+%	}
+%	\caption{Discover Response}
+%	\label{fig:discover-res}
+%\end{figure}
+
+\section{小结}
+
+本章对分布式终端系统的载体~——~移动个人网络的行为特征进行了分析和归纳，并在此基础上对移动个人网络节点的短距离性、异构性和组移动性给出了一个基于分组的移动性模型。并根据移动个人网络的移动性特征，制定了基于组播的服务发现协议，提供有效的服务发现机制，并通过桥接节点在转发过程中的信息汇聚降低了网络带宽的消耗。
+

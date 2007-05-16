@@ -1,14 +1,12 @@
 %$Id: w03_spreading.tex  403 2007-02-03 14:09:19Z gnawux $
 %  vim: set ft=tex:
-\chapter{移动个人网络中的分组移动性与服务发现机制}\label{ch:mm_sd}
+\chapter{移动个人网络的系统模型}\label{ch:model}
 
 \section{引言}
 
 本论文所讨论的分布式终端系统，由个人周边的智能设备自组织构成，由于其成员是泛在计算环境下的各种个人周边的智能设备，逻辑中心是其服务的用户，因此，它是构建在一个特殊的自组织网络之上的。由于这个自组织网络的核心——用户具有很强的移动性，随着用户的移动，网络的形态会发生剧烈的变化，而同时，由于这个网络的构建目的十分明确——服务用户，因此，其行为特征也具有很强的特殊性，本论文将这种特殊的自组织网络称为~``移动个人网络~(MPN, Mobile Personal Networks)''~以与一般意义的移动自组织网络~(MANET, Mobile Ad hoc Networks)~相区别。
 
-对于移动个人网络这一用户为中心的网络，其工作和行为是以业务为核心展开的：网络的组成成员提供业务的各个基本元素~——~设备提供的各种服务，网络收集各种业务上下文信息，网络上运行着各种服务用户的业务，展现给用户。而在这个功能性和能力极具动态性的系统之中，业务的生成、变更与业务相关信息状态的转换都需要系统内部运行的维护机制与应用之间互相感知，充当这个纽带和桥梁作用的维护机制就是服务发现机制，或称为资源发现机制，这对于所有具有自组织特性的系统都是十分重要的。
-
-本章将分析移动个人网络中设备移动行为的规律与特征，依据这些特征，给出适用于移动个人网络的有效的服务发现机制，从而使得应用可以有效地发现系统中的可用服务能力，选择恰当的服务能力进行组合，生成符合用户需求的的业务，并在系统环境发生变化时，同样具有良好的适变性，及时重新进行业务生成，维持业务的连续性和一致性。
+为了对构建于一类网络之上的分布式系统中的协议与机制进行研究、分析与设计，有必要首先对此类网络的特性进行归纳与总结，从而得到其系统模型。本章将分析移动个人网络中设备移动行为的规律与特征，依据这些特征，对移动个人网络的移动性行为与拓扑结构变化进行建模，从而有助于进行进一步的分析与研究。
 
 \section{网络中设备的移动性}\label{sse:03:mm}
 
@@ -18,11 +16,11 @@
 
 对于有基础设施网络，通常使用地址或号码来表示节点的拓扑位置关系，利用地址或号码的前缀可以逐步确定目的节点的位置，这不论在计算机数据通信网络还是在电信网络之中都被普遍采用，而当节点发生移动性的时候，节点和位置不再具有一一对应关系，从而带来了移动性管理问题。不过，对于有基础设施的网络，利用基础设施上的固定或相对固定的参考点作为中继，可以不断跟踪移动中的节点，维持通信的连续性，这一机制在移动通信网络中的~``HLR~(归属位置寄存器)~/~VLR~(访问位置寄存器)''~和~IETF~的移动~IP (MIP)~中的~``HA~(归属地代理)~/~CoA~(转交地址)''~架构设计中都体现无疑。
 
-以移动~IPv6 (MIPv6)~为例，一个移动节点~(MN)~惟一地拥有一个属于它的归属地址，只要节点可用，任何时候发往这个地址的~IP~分组都可以到达节点，无论该节点在何位置，并且，当节点发生移动，从一个接入路由器~(AR)~的覆盖范围移动到另一个的时候，只要正在进行中的~TCP~连接使用的是节点的归属地址，这个连接都不会中断\footnote{移动过程中可能导致部分丢包，但连接不会中断。}。同时，对应着节点当前接入网络的位置，节点还会有一个~``本地''~的地址，这就是所谓的转交地址~(CoA)，当节点移动的时候，它将自己在新的位置获得的地址\footnote{IPv6~中，不再需要借助一个访问地的代理~FA~进行转发，而是推荐利用无状态自配置~(stateless autoconfiguration)~获得地址，自己做自己的~FA。}作为~CoA，通过绑定更新~(BU)~信令注册到归属地的~HA，HA~便会拦截所有发往~MN~的归属地地址的分组，并转发到~CoA~来。
+以移动~IPv6 (MIPv6)\ucite{bib:mipv6}~为例，一个移动节点~(MN)~惟一地拥有一个属于它的归属地址，只要节点可用，任何时候发往这个地址的~IP~分组都可以到达节点，无论该节点在何位置，并且，当节点发生移动，从一个接入路由器~(AR)~的覆盖范围移动到另一个的时候，只要正在进行中的~TCP~连接使用的是节点的归属地址，这个连接都不会中断\footnote{移动过程中可能导致部分丢包，但连接不会中断。}。同时，对应着节点当前接入网络的位置，节点还会有一个~``本地''~的地址，这就是所谓的转交地址~(CoA)，当节点移动的时候，它将自己在新的位置获得的地址\footnote{IPv6~中，不再需要借助一个访问地的代理~FA~进行转发，而是推荐利用无状态自配置~(stateless autoconfiguration)~获得地址，自己做自己的~FA。}作为~CoA，通过绑定更新~(BU)~信令注册到归属地的~HA，HA~便会拦截所有发往~MN~的归属地地址的分组，并转发到~CoA~来。
 
-这种通过代理节点转发机制的移动性管理机制还有进一步的延伸，如层次化~MIPv6 (HMIPv6)，即是一种对上述移动性管理机制的优化，主要应用于节点会在某个范围内进行大量~``切换''~的情况。在这样的情况下，大量来往与~MN~和~HA~的~BU~消息会占用过多的带宽，因此考虑在两者之间加入一个移动系泊节点~(MAP)，此类节点负责一个范围内的节点移动事件，对于~MN~来说，MAP~就像~HA，MN~的移动事件都向它注册，而对于~HA，MAP~则表现得像个~MN，当节点进入一个~MAP~的覆盖范围的时候，MAP~会向~HA~发送~BU~消息，这样，如果~MN~的大部分移动都发生在覆盖范围合理的~MAP~范围之内，将节约大量的帮等更新信令带来的信令开销，因此，这种方式也称为微移动性管理。
+这种通过代理节点转发机制的移动性管理机制还有进一步的延伸，如层次化~MIPv6 (HMIPv6)\ucite{bib:hmipv6}，即是一种对上述移动性管理机制的优化，主要应用于节点会在某个范围内进行大量~``切换''~的情况。在这样的情况下，大量来往与~MN~和~HA~的~BU~消息会占用过多的带宽，因此考虑在两者之间加入一个移动系泊节点~(MAP)，此类节点负责一个范围内的节点移动事件，对于~MN~来说，MAP~就像~HA，MN~的移动事件都向它注册，而对于~HA，MAP~则表现得像个~MN，当节点进入一个~MAP~的覆盖范围的时候，MAP~会向~HA~发送~BU~消息，这样，如果~MN~的大部分移动都发生在覆盖范围合理的~MAP~范围之内，将节约大量的帮等更新信令带来的信令开销，因此，这种方式也称为微移动性管理。
 
-而将上述机制进一步推广，甚至可以考虑将接入路由器~(AR)~或~MAP~也移动起来，移动性不仅仅发生在单个节点上，作为网络的对外出口的路由器，也可能会移动，这就是网络移动性~(MEMO, NEtwork MObility)，整个网络都采用~MIP~的方式，通过对可移动路由器进行移动性管理，保持移动过程中整个网络的通信的连续性。并且，我们可以进一步在移动的网络中嵌入较小的移动的网络，层次化地管理网络与节点的移动，可见，对于有基础设施类的移动性管理，并非一定完全依赖绝对固定的设施，相对稳定的节点同样可以承担移动性管理的工作。
+而将上述机制进一步推广，甚至可以考虑将接入路由器~(AR)~或~MAP~也移动起来，移动性不仅仅发生在单个节点上，作为网络的对外出口的路由器，也可能会移动，这就是网络移动性~(MEMO, NEtwork MObility)\ucite{bib:nemo}，整个网络都采用~MIP~的方式，通过对可移动路由器进行移动性管理，保持移动过程中整个网络的通信的连续性。并且，我们可以进一步在移动的网络中嵌入较小的移动的网络\ucite{bib:ernst2004,bib:montavont2004}，层次化地管理网络与节点的移动，可见，对于有基础设施类的移动性管理，并非一定完全依赖绝对固定的设施，相对稳定的节点同样可以承担移动性管理的工作。
 
 \subsection{无基础设施网络的移动性模型}
 
@@ -77,150 +75,7 @@
 	\label{fig:mob-mod}
 \end{figure}
 
-\section{基于移动性分组的服务发现} \label{sec:grp}
-
-作为一个面向应用的分布式系统，服务发现机制对于分布式移动终端系统无疑是至关重要的，论文中，为分布式移动终端系统的特定底层承载移动个人网络定制了一个基于移动性分组的服务发现机制。这套机制之中，所有的控制消息都会以组播的形式发送给所有的高级节点，这对于覆盖范围较小的移动个人网络并不会带来太多的开销，为了应对所有可能出现的移动性事件和服务发现需求，我们定义了五类控制消息：
-\begin{itemize}
-	\item Advertise. 当节点加入系统之中或是自己的能力属性发生变更的时候，它会通过~``Advertise''~消息来通告给系统内的其它设备。
-	\item Report. 当节点发现邻居节点从系统之中小时，它会使用~``Report''~消息来通告节点失效事件。
-	\item Append. 当节点发现其它节点报告的消息的内容不确切的时候，会通过~``Append''~消息来修正其消息。
-	\item Discover. 如果应用对某些功能有需求的时候，会通过~``Discover''~消息来进行资源发现，同时，``Discover''~消息还具有订阅~(Subscribe)~的语义，订阅所需的能力服务器的变更状况。
-	\item Notify. 如果节点发现某个能力服务器被某个应用订阅了，其状态恰好发生了改变，它会通过~``Notify''~消息通告应用。
-\end{itemize}
-通过这些消息，我们设计了一组基于移动性分组的服务发现机制，这套机制包括两大类过程：设备变更引发的过程和应用行为引发的服务发现过程。
-%And several special fields may be contained in the control messages: The ``\emph{urgency}'' field denotes whether the message is urgent, and if it is not, it may be cached and merged with other messages in order to reduce the noise; and ``\emph{group}'' field implies that the message may be able to apply to a group if others have no opposite message sent.
-
-\subsection{设备发起的服务发现过程}
-
-当某一设备启动或是正常关闭的时候，设备的变更仅限于发生事件的设备，这一过程被称为~``单设备变更''，仅仅由设备自身向系统中的其它设备发布它的能力变化，不涉及互动，图~\ref{fig:mscsingledev}~是这一过程的~MSC~图。
-
-\begin{figure}[tb]
-	\begin{center}
-		\includegraphics[width=.6\textwidth]{msc-sdm}
-	\end{center}
-	\caption{单设备变更的~MSC~图}
-	\label{fig:mscsingledev}
-\end{figure}
-
-图~\ref{fig:singledev}~是设备开启时发送的单设备变更消息示例，消息以控制消息类型~(Advertise)~开头，并说明消息是声明新加入的能力服务器，并在消息之中描述了两个新加入的能力服务器的类型和能力值。
-
-\begin{figure}[tb]
-	\begin{center}
-	\framebox{%
-	\begin{minipage}[t]{.8\textwidth}%
-	\texttt{%
-Advertise CS JOIN\\
-DeviceID: 07707ddd-03d6-46b6-a858-f534e1\\
-Urgency: low\\
-TTL: 30\\
-Servers: 2\\
-ServerType: 33dd\\
-CAPA: 55\\
-ServerType: 49fb\\
-CAPA: 45
-	}%
-	\end{minipage}%
-	}
-	\end{center}
-	\caption{单设备变更消息示例}
-	\label{fig:singledev}
-\end{figure}
-
-与上述过程不同，当一个节点注意到它与相邻节点的连接在没有得到任何通告的情况下中断的时候，它无法判断该节点是因为自身出现故障而失效还是该节点与其所在的组一起离开了自己的通信范围，而如果是后者，因为移动性分组具有层次性，统一节点可能会依次隶属与从小到大的若干个组，是哪个组离开同样不能确定。因此，报告离开事件的节点会假设最大组已经离开，而发送出~``Report''~消息，而收到消息的其它节点如果发现消息中所述的组实际并没有离开则会发出~``Append''~消息，来对这个消息进行补充。图~\ref{fig:mscgroupdepart}~展示了节点离开报告的典型过程，图中特别地标示了连接不同链路的桥接节点的行为，该节点对于收到的~``Report''~消息并不立刻转发到其它介质中去，而是等待一段时间，在这期间，如果有节点发出~``Append''~消息，桥接节点在转发的时候会将上述消息汇聚在一起，形成一个更加简短、准确的~``Report''~消息转发出来。这一熔合转发过程会引入一个~``桥接时延''
-\begin{equation}
-	T_b=\max(T_{append})+T_{random},
-	\label{eq:bridge}
-\end{equation}
-其中~$T_{append}$~是~``Append''~消息可能导致的最长时延，而~$T_{random}$~是一个用于避免碰撞的随机时延，由于是否会有~``Append''~消息不可预知，即使没有~``Append''~消息，这个时延也不可避免，不过，这个时延的引入可以防止不必要的消息转发。并且，如果消息被标记为~``Urgency~(紧急的)''，该消息会的转发时延中将没有~$T_{append}$~这一部分。
-
-\begin{figure}[tb]
-	\begin{center}
-		\includegraphics[width=.6\textwidth]{msc-rpt}
-	\end{center}
-	\caption{节点离开报告消息的~MSC~图}
-	\label{fig:mscgroupdepart}
-\end{figure}
-
-图~\ref{fig:groupleave}~给出了一个设备成组离开的例子。如图~\ref{fig:reportleave}，一个设备发现另一个设备~``消失''~了，它将该设备，连同该设备所在的组~``WearableGroup''~以及再上级的组~``HouseGroup''~全部报告为~``离开''；随后，这条消息被另一个设备发出的补充说明~(图~\ref{fig:append})~所纠正——``HouseGroup''~仍然没有离开；接收到全部这些消息之后，桥接节点转发出去的节点离开报告~(图~\ref{fig:bdgreport})~之中已经不包括~``HouseGroup''~组了，离开的只有~``WearableGroup''~组，也就是说，``WearableGroup''~组已经不是~``HouseGroup''~组的一个部分了。
-
-\begin{figure}[htb]
-	\subfloat[组离开报告消息]{\label{fig:reportleave}%
-	\framebox{\begin{minipage}[t]{0.48\textwidth}
-		\texttt{%
-Report CS LEAVE\\
-GroupID: HouseGroup\\
-GroupID: WearableGroup\\
-Urgency: low\\
-TTL: 30\\
-DeviceID: 07707ddd-03d6-46b6\\
-Servers: 2\\
-\ldots}%
-	\end{minipage}}%
-	}\qquad
-	\begin{minipage}[t]{.48\textwidth}%
-		\vspace{-1em}
-		\subfloat[补充说明消息]{\label{fig:append}%
-		\framebox{\begin{minipage}[t]{\textwidth}
-		\texttt{%
-Append OPPOSITE LEAVE\\
-GroupID: HouseGroup\\
-Urgency: low\\
-\ldots }%
-		\end{minipage}}%
-		}\\
-		\subfloat[桥接节点转发的报告消息]{\label{fig:bdgreport}%
-		\framebox{\begin{minipage}[t]{\textwidth}
-		\texttt{%
-Report CS LEAVE\\
-GroupID: WearableGroup\\
-Urgency: low\\
-\ldots }%
-		\end{minipage}}%
-		}
-	\end{minipage}
-	\caption{组离开消息报告示例}
-	\label{fig:groupleave}
-\end{figure}
-
-\subsection{应用发起的服务发现过程}
-
-如果一个应用在业务生成的过程中需要若干能力服务器，这时，它需要通过~``Discover Request''~消息来进行服务发现，而记录有拥有符合应用需求高级节点会给出相应的响应，将所记录的能力服务器的信息告知应用，应用进行确认之后就完成了服务发现的过程，可以调用其需要的能力服务器了，当然，确认之前应用和能力服务器可能还需要进行双方的协商。图~\ref{fig:mscservicediscover}~给出了这一过程的~MSC~图，值得注意的是，图中各个节点充当的角色只是该节点在这一过程中所充当的角色，各个节点在系统中是平等的，任何节点都有可能提供能力服务器，任意高级节点都可以作为目录节点。
-
-\begin{figure}[tb]
-	\begin{center}
-		\includegraphics[width=.6\textwidth]{msc-req}
-	\end{center}
-	\caption{服务发现过程的~MSC~图}
-	\label{fig:mscservicediscover}
-\end{figure}
-%If an application requires several CSes, it may send a ``Discover Request'' message (Fig. \ref{fig:discover-req}). Then an SN which records the CS satisfying the requirement will reply a ``Discover Response'' message (Fig. \ref{fig:discover-res}). An SN will keep silent if the contents in its record entries have been sent out by others, whereas it will sent an ``Append'' to the response if it has additional information. Moreover, if some CSes do not ready when the application performs a discovery request, the ``Discover Request'' will be refer to as a ``subscribe'' operation, thus, SNs will ``notify'' it whenever the CSes becomes ready. In addition, the notify messages can be sent to nodes with predetermined parameters, which may be used to recompose an application even if the initiate node is not available. 
-
-%\begin{figure}[htb]
-%	\texttt{%
-%Discover Request\\
-%ApplicationID: 76ae08ed-7f5d-400f-b931-49c\\
-%Location: 07707ddd-03d6-46b6-a858-f534e1\\
-%Urgency: low\\
-%Servers: 2\\
-%\ldots
-%	}
-%	\caption{Discover Request}
-%	\label{fig:discover-req}
-%\end{figure}
-%
-%\begin{figure}[htb]
-%	\texttt{%
-%Discover Response\\
-%ApplicationID: 76ae08ed-7f5d-400f-b931-49c\\
-%Location: 07707ddd-03d6-46b6-a858-f534e1\\
-%Urgency: low\\
-%Servers: 1\\
-%\ldots
-%	}
-%	\caption{Discover Response}
-%	\label{fig:discover-res}
-%\end{figure}
-
+\section{移动个人网络的拓扑模型}
 \section{小结}
 
 本章对分布式终端系统的载体~——~移动个人网络的行为特征进行了分析和归纳，并在此基础上对移动个人网络节点的短距离性、异构性和组移动性给出了一个基于分组的移动性模型。并根据移动个人网络的移动性特征，制定了基于组播的服务发现协议，提供有效的服务发现机制，并通过桥接节点在转发过程中的信息汇聚降低了网络带宽的消耗。

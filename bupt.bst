@@ -85,7 +85,7 @@ STRINGS { s t}
 FUNCTION {output.nonnull}
 { 's :=
   output.state mid.sentence =
-    { ",{\enskip}" * write$ }
+    { ",{\ }" * write$ }
     { output.state after.block =
         { add.period$ write$
           newline$
@@ -980,8 +980,8 @@ FUNCTION {article}
     { format.journal.pages }
     { format.journal.eid }
   if$
-  format.url output
-  format.note output
+%  format.url output
+%  format.note output
   fin.entry
 }
 FUNCTION {book}
@@ -1008,8 +1008,8 @@ FUNCTION {book}
     }
   if$
   format.date "year" output.check
-  format.url output
-  format.note output
+%  format.url output
+%  format.note output
   fin.entry
 }
 FUNCTION {booklet}
@@ -1019,8 +1019,8 @@ FUNCTION {booklet}
   howpublished "howpublished" bibinfo.check output
   address "address" bibinfo.check output
   format.date output
-  format.url output
-  format.note output
+%  format.url output
+%  format.note output
   fin.entry
 }
 
@@ -1052,8 +1052,8 @@ FUNCTION {inbook}
   if$
   format.date "year" output.check
   format.pages "pages" output.check
-  format.url output
-  format.note output
+%  format.url output
+%  format.note output
   fin.entry
 }
 
@@ -1075,8 +1075,8 @@ FUNCTION {incollection}
     }
   if$
   format.pages "pages" output.check
-  format.url output
-  format.note output
+%  format.url output
+%  format.note output
   fin.entry
 }
 FUNCTION {inproceedings}
@@ -1099,8 +1099,8 @@ FUNCTION {inproceedings}
     }
   if$
   format.pages "pages" output.check
-  format.url output
-  format.note output
+%  format.url output
+%  format.note output
   fin.entry
 }
 FUNCTION {conference} { inproceedings }
@@ -1133,7 +1133,7 @@ FUNCTION {manual}
   format.edition output
   format.date output
   format.url output
-  format.note output
+%  format.note output
   fin.entry
 }
 
@@ -1145,8 +1145,8 @@ FUNCTION {mastersthesis}
   school "school" bibinfo.warn output
   address "address" bibinfo.check output
   format.date "year" output.check
-  format.url output
-  format.note output
+%  format.url output
+%  format.note output
   fin.entry
 }
 
@@ -1169,8 +1169,8 @@ FUNCTION {phdthesis}
   school "school" bibinfo.warn output
   address "address" bibinfo.check output
   format.date "year" output.check
-  format.url output
-  format.note output
+%  format.url output
+%  format.note output
   fin.entry
 }
 
@@ -1203,8 +1203,8 @@ FUNCTION {proceedings}
      }
   if$
       format.date "year" output.check
-  format.url output
-  format.note output
+%  format.url output
+%  format.note output
   fin.entry
 }
 
@@ -1217,7 +1217,7 @@ FUNCTION {techreport}
   address "address" bibinfo.check output
   format.date "year" output.check
   format.url output
-  format.note output
+%  format.note output
   fin.entry
 }
 
