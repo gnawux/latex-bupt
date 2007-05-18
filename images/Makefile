@@ -1,7 +1,7 @@
 
 all:mpfig mscs
 
-mpfig:spread-st.eps status.eps hash-overlap.eps hash-overview.eps luproto.eps
+mpfig:spread-st.eps status.eps hash-overlap.eps hash-overview.eps luproto.eps tree.eps tree-leave.eps tree-join.eps
 
 spread-st.eps:spread-st.mp
 	mpost spread-st.mp
@@ -27,6 +27,21 @@ luproto.eps:luproto.mp
 	mpost luproto.mp
 	mptopdf luproto
 	cp -f luproto.1 luproto.eps
+
+tree.eps:tree.mp
+	mpost tree.mp
+	mptopdf tree
+	cp -f tree.1 tree.eps
+
+tree-leave.eps:tree-leave.mp
+	mpost tree-leave.mp
+	mptopdf tree-leave
+	cp -f tree-leave.1 tree-leave.eps
+
+tree-join.eps:tree-join.mp
+	mpost tree-join.mp
+	mptopdf tree-join
+	cp -f tree-join.1 tree-join.eps
 
 mscs:msc-req.eps msc-rpt.eps msc-sdm.eps
 
