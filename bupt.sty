@@ -34,7 +34,7 @@
 %=======================================================================
 % Packages Inclusion
 %
-\RequirePackage[dvipdfm]{graphicx}
+\RequirePackage[pdftex]{graphicx}
 %\RequirePackage{caption}
 \RequirePackage{subfig}
 \RequirePackage{indentfirst}
@@ -84,7 +84,7 @@
 \RequirePackage{ifthen}
 \RequirePackage{multirow,longtable}
 % 生成有书签的pdf及其开关
-\RequirePackage[dvipdfm,
+\RequirePackage[pdftex,
             CJKbookmarks=true,
 			pdfstartview=FitH,
             bookmarksnumbered=true,
@@ -99,7 +99,7 @@
 % Packages Inclusion
 %=======================================================================
 
-\AtBeginDvi{\special{pdf:tounicode GBK-EUC-UCS2}} % GBK -> Unicode
+%\AtBeginDvi{\special{pdf:tounicode GBK-EUC-UCS2}} % GBK -> Unicode
 
 %=======================================================================
 % Font Setting:

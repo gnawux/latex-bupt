@@ -1,5 +1,5 @@
-latex wangxu
+pdflatex wangxu
 bibtex wangxu
-latex wangxu
-latex wangxu
-dvipdfmx wangxu 2>/dev/null
+pdflatex wangxu
+gbk2uni wangxu
+pdflatex wangxu
