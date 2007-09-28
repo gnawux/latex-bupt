@@ -79,9 +79,8 @@
 %-------------------------------------------------------------------
 \renewcommand{\BUPT@secretname}{密级}
 \renewcommand{\BUPT@secretlimitname}{保密期限}
-\renewcommand{\BUPT@secretnone}{}
-\renewcommand{\BUPT@secretnormal}{保密}
-\renewcommand{\BUPT@secrethard}{绝密}
+\renewcommand{\BUPT@secretoff}{}
+\renewcommand{\BUPT@secreton}{学校秘密}
 \renewcommand{\BUPT@yearname}{年}
 \renewcommand{\BUPT@doctor}{博士}
 \renewcommand{\BUPT@master}{硕士}

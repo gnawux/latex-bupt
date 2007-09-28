@@ -221,9 +221,8 @@
 %-------------------------------------------------------------------
 \newcommand{\BUPT@secretname}{SL}
 \newcommand{\BUPT@secretlimitname}{SLY}
-\newcommand{\BUPT@secretnone}{}
-\newcommand{\BUPT@secretnormal}{Se}
-\newcommand{\BUPT@secrethard}{HSe}
+\newcommand{\BUPT@secretoff}{}
+\newcommand{\BUPT@secreton}{Se}
 \newcommand{\BUPT@yearname}{Year}
 \newcommand{\BUPT@doctor}{Doctor}
 \newcommand{\BUPT@master}{Master}
@@ -282,7 +281,7 @@ The contents\ldots%
 %===================================================================
 % Default Settings:
 %
-\newcommand{\BUPT@secretlevel}{\BUPT@secretnone}
+\newcommand{\BUPT@secretlevel}{\BUPT@secretoff}
 \newcommand{\BUPT@secretlimit}{}
 \newcommand{\BUPT@degreethesis}{\BUPT@doctor\BUPT@thesisname}
 \newcommand{\BUPT@secretlimityear}{\rule{12pt}{0.5pt}}
@@ -316,9 +315,9 @@ The contents\ldots%
 %===================================================================
 % User Command:
 \newcommand{\SecretLevel}[1]{%
-	\ifthenelse{\equal{#1}{none}}{\renewcommand{\BUPT@secretlevel}{\BUPT@secretnone}}{}%
-	\ifthenelse{\equal{#1}{normal}}{\renewcommand{\BUPT@secretlevel}{\BUPT@secretnormal}}{}%
-	\ifthenelse{\equal{#1}{hard}}{\renewcommand{\BUPT@secretlevel}{\BUPT@secrethard}}{}%
+	\ifthenelse{\equal{#1}{off}}{\renewcommand{\BUPT@secretlevel}{\BUPT@secretoff}}{}%
+	\ifthenelse{\equal{#1}{on}}{\renewcommand{\BUPT@secretlevel}{\BUPT@secreton}}{}%
+%	\ifthenelse{\equal{#1}{hard}}{\renewcommand{\BUPT@secretlevel}{\BUPT@secrethard}}{}%
 }
 
 \newcommand{\SecretLimit}[1]{%
@@ -380,7 +379,7 @@ The contents\ldots%
 		\begin{minipage}[t]{\textwidth}
 				\noindent%
 				\sihao\hspace{9pt}\bf
-				\begin{tabular}[t]{@{}p{37.89pt}@{}p{31.62pt}@{}p{70.3pt}@{}p{42.16pt}@{}}
+				\begin{tabular}[t]{@{}p{37.89pt}@{}p{70.3pt}@{}p{70.3pt}@{}p{42.16pt}@{}}
 				\BUPT@secretname: & \BUPT@secretlevel & \BUPT@secretlimitname: & \BUPT@secretlimit\\
 				\end{tabular}
 			\vspace{47.30pt}
